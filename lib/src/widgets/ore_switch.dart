@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 
 import '../theme/ore_theme.dart';
-import '../theme/ore_tokens.dart';
 import 'ore_surface.dart';
 
 class OreSwitch extends StatefulWidget {
@@ -24,6 +23,9 @@ class _OreSwitchState extends State<OreSwitch>
   static const double _trackHeight = 24.0;
   static const double _knobSize = 28.0;
   static const double _maxLeft = _trackWidth - _knobSize;
+  static const double _iconSize = 16.0;
+  static const double _iconInsetLeft = 6.0;
+  static const double _iconInsetRight = 6.0;
   static const int _firstUpMs = 60;
   static const int _firstDownMs = 60;
   static const int _midPauseMs = 30;
@@ -120,19 +122,62 @@ class _OreSwitchState extends State<OreSwitch>
     final shadowDepth = theme.bevelDepth;
     final knobTop = _trackHeight - _knobSize;
 
+    final borderColor = _enabled ? colors.border : colors.borderLight;
     final trackColor = _enabled
         ? (isOn ? colors.accent : colors.borderLight)
         : colors.surface;
+    final iconTop = (_trackHeight - _iconSize) / 2;
 
-    final track = Container(
+    final track = SizedBox(
       width: _trackWidth,
       height: _trackHeight,
-      decoration: BoxDecoration(
-        color: trackColor,
-        border: Border.all(
-          color: _enabled ? colors.border : colors.borderLight,
-          width: theme.borderWidth,
-        ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: trackColor,
+                border: Border.all(
+                  color: borderColor,
+                  width: theme.borderWidth,
+                ),
+              ),
+            ),
+          ),
+          if (isOn)
+            Positioned(
+              left: _iconInsetLeft,
+              top: iconTop,
+              width: _iconSize,
+              height: _iconSize,
+              child: Center(
+                child: Text(
+                  'I',
+                  style: theme.typography.caption.copyWith(
+                    color: const Color(0xFFFFFFFF),
+                    height: 1,
+                  ),
+                ),
+              ),
+            )
+          else
+            Positioned(
+              right: _iconInsetRight,
+              top: iconTop,
+              width: _iconSize,
+              height: _iconSize,
+              child: Center(
+                child: Text(
+                  'O',
+                  style: theme.typography.caption.copyWith(
+                    color: borderColor,
+                    height: 1,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
 

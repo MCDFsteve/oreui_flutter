@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme/ore_highlight.dart';
 import '../theme/ore_theme.dart';
 import '../theme/ore_tokens.dart';
 import 'ore_surface.dart';
@@ -229,10 +230,16 @@ class _OreButtonState extends State<OreButton> {
       );
     }
 
-    final neutralHighlight =
-        hovered ? colors.highlightStrong : colors.highlight;
-    final coloredHighlight =
-        hovered ? const Color(0x66FFFFFF) : const Color(0x33FFFFFF);
+    final neutralHighlight = OreHighlight.resolve(
+      colors: colors,
+      colored: false,
+      hovered: hovered,
+    );
+    final coloredHighlight = OreHighlight.resolve(
+      colors: colors,
+      colored: true,
+      hovered: hovered,
+    );
 
     switch (widget.variant) {
       case OreButtonVariant.primary:

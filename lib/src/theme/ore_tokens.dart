@@ -44,6 +44,9 @@ class OreTokens {
   static const double buttonPadLgHUnits = 10;
   static const double buttonPadLgVUnits = 4;
 
+  static const Color coloredHighlight = Color(0x33FFFFFF);
+  static const Color coloredHighlightStrong = Color(0x66FFFFFF);
+
   static const Duration fast = Duration(milliseconds: 120);
   static const Duration medium = Duration(milliseconds: 180);
   static const Duration slow = Duration(milliseconds: 240);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme/ore_highlight.dart';
 import '../theme/ore_theme.dart';
 import '../theme/ore_tokens.dart';
 import 'ore_surface.dart';
@@ -54,7 +55,13 @@ class _OreCheckboxState extends State<OreCheckbox> {
       _enabled,
     );
     final borderColor = _enabled ? colors.border : colors.borderLight;
-    final shadowColor = isChecked || isMixed ? colors.accentPressed : colors.shadow;
+    final shadowColor =
+        isChecked || isMixed ? colors.accentPressed : colors.shadow;
+    final highlightColor = OreHighlight.resolve(
+      colors: colors,
+      colored: isChecked || isMixed,
+      hovered: isHovered,
+    );
 
     final indicator = SizedBox(
       width: indicatorSize,
@@ -62,7 +69,7 @@ class _OreCheckboxState extends State<OreCheckbox> {
       child: OreSurface(
         color: background,
         borderColor: borderColor,
-        highlightColor: colors.highlight,
+        highlightColor: highlightColor,
         shadowColor: shadowColor,
         borderWidth: theme.borderWidth,
         depth: isPressed ? 0 : shadowDepth,

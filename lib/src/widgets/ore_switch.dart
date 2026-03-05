@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../theme/ore_highlight.dart';
 import '../theme/ore_theme.dart';
 import '../theme/ore_tokens.dart';
 import 'ore_surface.dart';
@@ -165,6 +166,16 @@ class _OreSwitchState extends State<OreSwitch>
         ? (isOn ? colors.accent : colors.borderLight)
         : colors.surface;
     final iconBoxWidth = metrics.iconBoxWidth;
+    final trackHighlight = OreHighlight.resolve(
+      colors: colors,
+      colored: isOn,
+      hovered: isHovered,
+    );
+    final knobHighlight = OreHighlight.resolve(
+      colors: colors,
+      colored: false,
+      hovered: isHovered,
+    );
 
     final track = SizedBox(
       width: metrics.trackWidth,
@@ -172,7 +183,7 @@ class _OreSwitchState extends State<OreSwitch>
       child: OreSurface(
         color: trackColor,
         borderColor: borderColor,
-        highlightColor: colors.highlight,
+        highlightColor: trackHighlight,
         shadowColor: colors.shadow,
         borderWidth: theme.borderWidth,
         depth: shadowDepth,
@@ -241,7 +252,7 @@ class _OreSwitchState extends State<OreSwitch>
       child: OreSurface(
         color: sliderColor,
         borderColor: _enabled ? colors.border : colors.borderLight,
-        highlightColor: colors.highlight,
+        highlightColor: knobHighlight,
         shadowColor: colors.shadow,
         borderWidth: theme.borderWidth,
         depth: shadowDepth,

@@ -119,6 +119,7 @@ class _OreSwitchState extends State<OreSwitch>
     final highlightDepth =
         (theme.bevelDepth - 1).clamp(0.0, theme.bevelDepth).toDouble();
     final shadowDepth = theme.bevelDepth;
+    final trackShadowDepth = 0.0;
     final knobTop = _trackHeight - _knobSize;
 
     final borderColor = _enabled ? colors.border : colors.borderLight;
@@ -130,67 +131,70 @@ class _OreSwitchState extends State<OreSwitch>
     final track = SizedBox(
       width: _trackWidth,
       height: _trackHeight,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: trackColor,
-                border: Border.all(
-                  color: borderColor,
-                  width: theme.borderWidth,
+      child: OreSurface(
+        color: trackColor,
+        borderColor: borderColor,
+        highlightColor: colors.highlight,
+        shadowColor: colors.shadow,
+        borderWidth: theme.borderWidth,
+        depth: theme.bevelDepth,
+        highlightDepth: highlightDepth,
+        shadowDepth: trackShadowDepth,
+        swapHighlightOnPressed: false,
+        pressed: false,
+        padding: EdgeInsets.zero,
+        alignment: Alignment.center,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            if (isOn)
+              Positioned(
+                left: 0,
+                top: 0,
+                width: iconBoxWidth,
+                height: _trackHeight,
+                child: Center(
+                  child: ClipRect(
+                    child: Transform.scale(
+                      scale: _iconVisualScale,
+                      child: Image.asset(
+                        'assets/I.png',
+                        package: 'oreui_flutter',
+                        width: _iconBaseSize,
+                        height: _iconBaseSize,
+                        filterQuality: FilterQuality.none,
+                        color: const Color(0xFFFFFFFF),
+                        colorBlendMode: BlendMode.srcIn,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          ),
-          if (isOn)
-            Positioned(
-              left: 0,
-              top: 0,
-              width: iconBoxWidth,
-              height: _trackHeight,
-              child: Center(
-                child: ClipRect(
-                  child: Transform.scale(
-                    scale: _iconVisualScale,
-                    child: Image.asset(
-                      'assets/I.png',
-                      package: 'oreui_flutter',
-                      width: _iconBaseSize,
-                      height: _iconBaseSize,
-                      filterQuality: FilterQuality.none,
-                      color: const Color(0xFFFFFFFF),
-                      colorBlendMode: BlendMode.srcIn,
+              )
+            else
+              Positioned(
+                right: 0,
+                top: 0,
+                width: iconBoxWidth,
+                height: _trackHeight,
+                child: Center(
+                  child: ClipRect(
+                    child: Transform.scale(
+                      scale: _iconVisualScale,
+                      child: Image.asset(
+                        'assets/O.png',
+                        package: 'oreui_flutter',
+                        width: _iconBaseSize,
+                        height: _iconBaseSize,
+                        filterQuality: FilterQuality.none,
+                        color: borderColor,
+                        colorBlendMode: BlendMode.srcIn,
+                      ),
                     ),
                   ),
                 ),
               ),
-            )
-          else
-            Positioned(
-              right: 0,
-              top: 0,
-              width: iconBoxWidth,
-              height: _trackHeight,
-              child: Center(
-                child: ClipRect(
-                  child: Transform.scale(
-                    scale: _iconVisualScale,
-                    child: Image.asset(
-                      'assets/O.png',
-                      package: 'oreui_flutter',
-                      width: _iconBaseSize,
-                      height: _iconBaseSize,
-                      filterQuality: FilterQuality.none,
-                      color: borderColor,
-                      colorBlendMode: BlendMode.srcIn,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
 

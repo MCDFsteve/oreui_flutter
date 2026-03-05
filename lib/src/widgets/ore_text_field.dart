@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../theme/ore_theme.dart';
@@ -56,6 +58,51 @@ class OreTextField extends StatelessWidget {
 
     final isSingleLine =
         (maxLines ?? 1) == 1 && (minLines ?? 1) == 1;
+    final textAlignVertical =
+        isSingleLine ? TextAlignVertical.center : TextAlignVertical.top;
+    final resolvedPadding = contentPadding ??
+        (isSingleLine
+            ? EdgeInsets.symmetric(
+                horizontal: OreTokens.gapMd,
+                vertical: math.max(
+                  0,
+                  (OreTokens.controlHeightMd -
+                          ((theme.typography.body.fontSize ?? 14) *
+                              (theme.typography.body.height ?? 1.0))) /
+                      2,
+                ),
+              )
+            : EdgeInsets.symmetric(
+                horizontal: OreTokens.gapMd,
+                vertical: OreTokens.gapSm,
+              ));
+
+    final textField = TextField(
+      controller: controller,
+      focusNode: focusNode,
+      enabled: enabled,
+      obscureText: obscureText,
+      maxLines: maxLines,
+      minLines: minLines,
+      onChanged: onChanged,
+      keyboardType: keyboardType,
+      textInputAction: textInputAction,
+      textCapitalization: textCapitalization,
+      onEditingComplete: onEditingComplete,
+      onSubmitted: onSubmitted,
+      style: theme.typography.body.copyWith(color: textColor),
+      textAlignVertical: textAlignVertical,
+      cursorColor: colors.success,
+      decoration: InputDecoration(
+        border: InputBorder.none,
+        isDense: true,
+        hintText: hintText,
+        hintStyle: theme.typography.body.copyWith(color: colors.textMuted),
+        contentPadding: resolvedPadding,
+        prefixIcon: prefix,
+        suffixIcon: suffix,
+      ),
+    );
 
     Widget field = OreSurface(
       color: surfaceColor,
@@ -68,35 +115,12 @@ class OreTextField extends StatelessWidget {
       shadowDepth: shadowDepth,
       shadowOnTop: true,
       padding: EdgeInsets.zero,
-      child: TextField(
-        controller: controller,
-        focusNode: focusNode,
-        enabled: enabled,
-        obscureText: obscureText,
-        maxLines: maxLines,
-        minLines: minLines,
-        onChanged: onChanged,
-        keyboardType: keyboardType,
-        textInputAction: textInputAction,
-        textCapitalization: textCapitalization,
-        onEditingComplete: onEditingComplete,
-        onSubmitted: onSubmitted,
-        style: theme.typography.body.copyWith(color: textColor),
-        cursorColor: colors.success,
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          isDense: true,
-          hintText: hintText,
-          hintStyle: theme.typography.body.copyWith(color: colors.textMuted),
-          contentPadding: contentPadding ??
-              const EdgeInsets.symmetric(
-                horizontal: OreTokens.gapMd,
-                vertical: OreTokens.gapSm,
-              ),
-          prefixIcon: prefix,
-          suffixIcon: suffix,
-        ),
-      ),
+      child: isSingleLine
+          ? Align(
+              alignment: Alignment.centerLeft,
+              child: textField,
+            )
+          : textField,
     );
 
     if (isSingleLine) {

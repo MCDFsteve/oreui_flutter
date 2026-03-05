@@ -1,0 +1,276 @@
+import 'package:flutter/material.dart';
+
+import '../theme/ore_theme.dart';
+import '../theme/ore_tokens.dart';
+import 'ore_surface.dart';
+
+enum OreButtonVariant { primary, secondary, ghost, danger }
+
+enum OreButtonSize { sm, md, lg }
+
+class OreButton extends StatefulWidget {
+  const OreButton({
+    super.key,
+    required this.child,
+    required this.onPressed,
+    this.onLongPress,
+    this.variant = OreButtonVariant.secondary,
+    this.size = OreButtonSize.md,
+    this.isLoading = false,
+    this.leading,
+    this.trailing,
+    this.fullWidth = false,
+    this.autofocus = false,
+    this.focusNode,
+  });
+
+  final Widget child;
+  final VoidCallback? onPressed;
+  final VoidCallback? onLongPress;
+  final OreButtonVariant variant;
+  final OreButtonSize size;
+  final bool isLoading;
+  final Widget? leading;
+  final Widget? trailing;
+  final bool fullWidth;
+  final bool autofocus;
+  final FocusNode? focusNode;
+
+  @override
+  State<OreButton> createState() => _OreButtonState();
+}
+
+class _OreButtonState extends State<OreButton> {
+  bool _hovered = false;
+  bool _pressed = false;
+
+  bool get _enabled => widget.onPressed != null && !widget.isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = OreTheme.of(context);
+    final colors = theme.colors;
+    final isPressed = _pressed && _enabled;
+    final isHovered = _hovered && _enabled;
+
+    final config = _resolveColors(colors, isHovered, isPressed, _enabled);
+    final height = _height(widget.size);
+    final padding = _padding(widget.size);
+
+    Widget content = DefaultTextStyle.merge(
+      style: theme.typography.label.copyWith(color: config.textColor),
+      child: _buildContent(config.textColor),
+    );
+
+    final surface = OreSurface(
+      color: config.background,
+      borderColor: config.borderColor,
+      highlightColor: config.highlightColor,
+      shadowColor: config.shadowColor,
+      borderWidth: theme.borderWidth,
+      depth: isPressed ? 0 : theme.bevelDepth,
+      padding: padding,
+      pressed: isPressed,
+      child: content,
+    );
+
+    Widget buttonBody = ConstrainedBox(
+      constraints: BoxConstraints(minHeight: height),
+      child: surface,
+    );
+
+    if (widget.fullWidth) {
+      buttonBody = SizedBox(width: double.infinity, child: buttonBody);
+    }
+
+    return Focus(
+      autofocus: widget.autofocus,
+      focusNode: widget.focusNode,
+      child: MouseRegion(
+        onEnter: (_) => _setHovered(true),
+        onExit: (_) => _setHovered(false),
+        cursor: _enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+        child: GestureDetector(
+          onTap: _enabled ? widget.onPressed : null,
+          onLongPress: _enabled ? widget.onLongPress : null,
+          onTapDown: _enabled ? (_) => _setPressed(true) : null,
+          onTapUp: _enabled ? (_) => _setPressed(false) : null,
+          onTapCancel: _enabled ? () => _setPressed(false) : null,
+          behavior: HitTestBehavior.opaque,
+          child: AnimatedContainer(
+            duration: OreTokens.fast,
+            transform: Matrix4.translationValues(0, isPressed ? 4 : 0, 0),
+            child: buttonBody,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(Color textColor) {
+    final parts = <Widget>[];
+    final hasAffixes =
+        widget.isLoading || widget.leading != null || widget.trailing != null;
+
+    if (widget.isLoading) {
+      parts.add(
+        SizedBox(
+          width: 16,
+          height: 16,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(textColor),
+          ),
+        ),
+      );
+    }
+
+    if (widget.leading != null) {
+      parts.add(widget.leading!);
+    }
+
+    parts.add(hasAffixes ? Flexible(child: widget.child) : widget.child);
+
+    if (widget.trailing != null) {
+      parts.add(widget.trailing!);
+    }
+
+    if (parts.length == 1) {
+      return parts.first;
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: _withGaps(parts, OreTokens.gapSm),
+    );
+  }
+
+  List<Widget> _withGaps(List<Widget> items, double gap) {
+    if (items.length <= 1) {
+      return items;
+    }
+    final spaced = <Widget>[];
+    for (var i = 0; i < items.length; i++) {
+      spaced.add(items[i]);
+      if (i != items.length - 1) {
+        spaced.add(SizedBox(width: gap));
+      }
+    }
+    return spaced;
+  }
+
+  double _height(OreButtonSize size) {
+    switch (size) {
+      case OreButtonSize.sm:
+        return OreTokens.controlHeightSm;
+      case OreButtonSize.md:
+        return OreTokens.controlHeightMd;
+      case OreButtonSize.lg:
+        return OreTokens.controlHeightLg;
+    }
+  }
+
+  EdgeInsetsGeometry _padding(OreButtonSize size) {
+    switch (size) {
+      case OreButtonSize.sm:
+        return const EdgeInsets.symmetric(horizontal: 12, vertical: 4);
+      case OreButtonSize.md:
+        return const EdgeInsets.symmetric(horizontal: 16, vertical: 6);
+      case OreButtonSize.lg:
+        return const EdgeInsets.symmetric(horizontal: 20, vertical: 8);
+    }
+  }
+
+  _ButtonColors _resolveColors(
+    OreColors colors,
+    bool hovered,
+    bool pressed,
+    bool enabled,
+  ) {
+    if (!enabled) {
+      return _ButtonColors(
+        background: colors.surface,
+        borderColor: colors.borderLight,
+        shadowColor: colors.borderLight,
+        highlightColor: colors.highlightStrong,
+        textColor: colors.textDisabled,
+      );
+    }
+
+    switch (widget.variant) {
+      case OreButtonVariant.primary:
+        return _ButtonColors(
+          background: _pick(colors.accent, colors.accentHover,
+              colors.accentPressed, hovered, pressed),
+          borderColor: colors.border,
+          shadowColor: colors.accentPressed,
+          highlightColor: colors.highlightStrong,
+          textColor: colors.textInverse,
+        );
+      case OreButtonVariant.danger:
+        return _ButtonColors(
+          background: _pick(colors.danger, colors.dangerHover,
+              colors.dangerPressed, hovered, pressed),
+          borderColor: colors.border,
+          shadowColor: colors.dangerPressed,
+          highlightColor: colors.highlightStrong,
+          textColor: colors.textInverse,
+        );
+      case OreButtonVariant.secondary:
+        return _ButtonColors(
+          background: _pick(colors.surface, colors.surfaceHover,
+              colors.surfacePressed, hovered, pressed),
+          borderColor: colors.border,
+          shadowColor: colors.shadow,
+          highlightColor: colors.highlightStrong,
+          textColor: colors.textPrimary,
+        );
+      case OreButtonVariant.ghost:
+        return _ButtonColors(
+          background: Colors.transparent,
+          borderColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          textColor: colors.textPrimary,
+        );
+    }
+  }
+
+  Color _pick(
+    Color base,
+    Color hover,
+    Color pressed,
+    bool isHovered,
+    bool isPressed,
+  ) {
+    if (isPressed) return pressed;
+    if (isHovered) return hover;
+    return base;
+  }
+
+  void _setHovered(bool value) {
+    if (_hovered == value) return;
+    setState(() => _hovered = value);
+  }
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
+}
+
+class _ButtonColors {
+  const _ButtonColors({
+    required this.background,
+    required this.borderColor,
+    required this.shadowColor,
+    required this.highlightColor,
+    required this.textColor,
+  });
+
+  final Color background;
+  final Color borderColor;
+  final Color shadowColor;
+  final Color highlightColor;
+  final Color textColor;
+}

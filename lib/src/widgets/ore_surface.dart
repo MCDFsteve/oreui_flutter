@@ -21,6 +21,7 @@ class OreSurface extends StatelessWidget {
     this.padding,
     this.pressed = false,
     this.ignoreShadowPadding = false,
+    this.shadowOnTop = false,
   });
 
   final Widget child;
@@ -37,6 +38,7 @@ class OreSurface extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final bool pressed;
   final bool ignoreShadowPadding;
+  final bool shadowOnTop;
 
   @override
   Widget build(BuildContext context) {
@@ -58,12 +60,14 @@ class OreSurface extends StatelessWidget {
     final resolvedPadding =
         padding?.resolve(Directionality.of(context)) ??
             EdgeInsets.all(theme.gap);
+    final shadowOffsetTop = shadowOnTop ? resolvedShadowDepth : 0.0;
+    final shadowOffsetBottom = shadowOnTop ? 0.0 : resolvedShadowDepth;
     final adjustedPadding = ignoreShadowPadding
         ? EdgeInsets.fromLTRB(
             resolvedPadding.left,
-            resolvedPadding.top,
+            math.max(0, resolvedPadding.top - shadowOffsetTop),
             resolvedPadding.right,
-            math.max(0, resolvedPadding.bottom - resolvedShadowDepth),
+            math.max(0, resolvedPadding.bottom - shadowOffsetBottom),
           )
         : resolvedPadding;
 
@@ -107,25 +111,25 @@ class OreSurface extends StatelessWidget {
             Positioned(
               left: borderWidth,
               right: borderWidth,
-              top: borderWidth,
+              top: borderWidth + shadowOffsetTop,
               height: resolvedHighlightDepth,
               child: Container(color: highlight),
             ),
             // Left highlight (strong)
             Positioned(
               left: borderWidth,
-              top: borderWidth + resolvedHighlightDepth,
+              top: borderWidth + shadowOffsetTop + resolvedHighlightDepth,
               bottom:
-                  borderWidth + resolvedShadowDepth + resolvedHighlightDepth,
+                  borderWidth + shadowOffsetBottom + resolvedHighlightDepth,
               width: resolvedHighlightDepth,
               child: Container(color: highlight),
             ),
             // Right highlight (weak)
             Positioned(
               right: borderWidth,
-              top: borderWidth + resolvedHighlightDepth,
+              top: borderWidth + shadowOffsetTop + resolvedHighlightDepth,
               bottom:
-                  borderWidth + resolvedShadowDepth + resolvedHighlightDepth,
+                  borderWidth + shadowOffsetBottom + resolvedHighlightDepth,
               width: resolvedHighlightDepth,
               child: Container(color: weakHighlight),
             ),
@@ -133,21 +137,21 @@ class OreSurface extends StatelessWidget {
             Positioned(
               left: borderWidth,
               right: borderWidth,
-              bottom: borderWidth + resolvedShadowDepth,
+              bottom: borderWidth + shadowOffsetBottom,
               height: resolvedHighlightDepth,
               child: Container(color: weakHighlight),
             ),
             // Bright corners (top-right, bottom-left)
             Positioned(
               right: borderWidth,
-              top: borderWidth,
+              top: borderWidth + shadowOffsetTop,
               width: resolvedHighlightDepth,
               height: resolvedHighlightDepth,
               child: Container(color: cornerHighlight),
             ),
             Positioned(
               left: borderWidth,
-              bottom: borderWidth + resolvedShadowDepth,
+              bottom: borderWidth + shadowOffsetBottom,
               width: resolvedHighlightDepth,
               height: resolvedHighlightDepth,
               child: Container(color: cornerHighlight),
@@ -158,7 +162,8 @@ class OreSurface extends StatelessWidget {
             Positioned(
               left: borderWidth,
               right: borderWidth,
-              bottom: borderWidth,
+              top: shadowOnTop ? borderWidth : null,
+              bottom: shadowOnTop ? null : borderWidth,
               height: resolvedShadowDepth,
               child: Container(color: shadow),
             ),

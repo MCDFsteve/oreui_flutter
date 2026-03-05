@@ -9,6 +9,27 @@ enum OreButtonVariant { primary, secondary, ghost, danger }
 
 enum OreButtonSize { sm, md, lg }
 
+class OreButtonOverlayData {
+  const OreButtonOverlayData({
+    required this.isPressed,
+    required this.borderWidth,
+    required this.highlightDepth,
+    required this.shadowDepth,
+    required this.height,
+  });
+
+  final bool isPressed;
+  final double borderWidth;
+  final double highlightDepth;
+  final double shadowDepth;
+  final double height;
+}
+
+typedef OreButtonOverlayBuilder = Widget Function(
+  BuildContext context,
+  OreButtonOverlayData data,
+);
+
 class OreButton extends StatefulWidget {
   const OreButton({
     super.key,
@@ -23,6 +44,7 @@ class OreButton extends StatefulWidget {
     this.fullWidth = false,
     this.autofocus = false,
     this.focusNode,
+    this.overlayBuilder,
   });
 
   final Widget child;
@@ -36,6 +58,7 @@ class OreButton extends StatefulWidget {
   final bool fullWidth;
   final bool autofocus;
   final FocusNode? focusNode;
+  final OreButtonOverlayBuilder? overlayBuilder;
 
   @override
   State<OreButton> createState() => _OreButtonState();
@@ -90,6 +113,27 @@ class _OreButtonState extends State<OreButton> {
       child: content,
     );
 
+    Widget decorated = surface;
+    if (widget.overlayBuilder != null) {
+      final overlay = widget.overlayBuilder!(
+        context,
+        OreButtonOverlayData(
+          isPressed: isPressed,
+          borderWidth: theme.borderWidth,
+          highlightDepth: highlightDepth,
+          shadowDepth: shadowDepth,
+          height: height,
+        ),
+      );
+      decorated = Stack(
+        clipBehavior: Clip.none,
+        children: [
+          surface,
+          overlay,
+        ],
+      );
+    }
+
     final pressedCut = isPressed ? visualDepth : 0.0;
     final pressedHeight =
         (height - pressedCut).clamp(0.0, height);
@@ -102,7 +146,7 @@ class _OreButtonState extends State<OreButton> {
         widthFactor: widthFactor,
         child: SizedBox(
           height: pressedHeight,
-          child: surface,
+          child: decorated,
         ),
       ),
     );
@@ -224,8 +268,8 @@ class _OreButtonState extends State<OreButton> {
       return _ButtonColors(
         background: colors.surface,
         borderColor: colors.borderLight,
-        shadowColor: colors.borderLight,
-        highlightColor: colors.highlight,
+        shadowColor: colors.borderLight.withOpacity(0.6),
+        highlightColor: Colors.transparent,
         textColor: colors.textDisabled,
       );
     }

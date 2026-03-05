@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../theme/ore_highlight.dart';
 import '../theme/ore_theme.dart';
 import '../theme/ore_tokens.dart';
+import 'ore_knob.dart';
 
 class OreSlider extends StatelessWidget {
   const OreSlider({
@@ -32,8 +34,9 @@ class OreSlider extends StatelessWidget {
     final depthUnit = theme.borderWidth;
     final highlightDepth = depthUnit;
     final shadowDepth = depthUnit * 2;
-    final trackHeight = depthUnit * OreTokens.sliderTrackUnits;
     final thumbSize = depthUnit * OreTokens.sliderThumbUnits;
+    final trackHeight = thumbSize / 2;
+    const trackShadowDepth = 0.0;
 
     return SliderTheme(
       data: sliderTheme.copyWith(
@@ -54,7 +57,7 @@ class OreSlider extends StatelessWidget {
           colors: colors,
           borderWidth: theme.borderWidth,
           highlightDepth: highlightDepth,
-          shadowDepth: shadowDepth,
+          shadowDepth: trackShadowDepth,
           trackHeight: trackHeight,
         ),
       ),
@@ -125,8 +128,15 @@ class OreSliderTrackShape extends SliderTrackShape {
       isDiscrete: isDiscrete,
     );
 
+    final inactiveColor =
+        isEnabled ? colors.borderLight : colors.surface;
+    final activeColor =
+        isEnabled ? colors.accent : colors.surfaceHover;
+    final borderColor = isEnabled ? colors.border : colors.borderLight;
+    final trackHighlight = OreHighlight.muted(colors: colors);
+
     final inactivePaint = Paint()
-      ..color = isEnabled ? colors.borderLight : colors.surface
+      ..color = inactiveColor
       ..style = PaintingStyle.fill;
     canvas.drawRect(trackRect, inactivePaint);
 
@@ -137,33 +147,22 @@ class OreSliderTrackShape extends SliderTrackShape {
       trackRect.bottom,
     );
     final activePaint = Paint()
-      ..color = isEnabled ? colors.accent : colors.surfaceHover
+      ..color = activeColor
       ..style = PaintingStyle.fill;
     canvas.drawRect(activeRect, activePaint);
 
-    final borderPaint = Paint()
-      ..color = isEnabled ? colors.border : colors.borderLight
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = borderWidth;
-    canvas.drawRect(trackRect, borderPaint);
-
-    final highlightPaint = Paint()
-      ..color = colors.highlight
-      ..strokeWidth = highlightDepth;
-    canvas.drawLine(
-      Offset(trackRect.left + borderWidth, trackRect.top + highlightDepth / 2),
-      Offset(trackRect.right - borderWidth, trackRect.top + highlightDepth / 2),
-      highlightPaint,
-    );
-
-    final shadowPaint = Paint()
-      ..color = colors.shadow
-      ..strokeWidth = shadowDepth;
-    canvas.drawLine(
-      Offset(trackRect.left + borderWidth, trackRect.bottom - shadowDepth / 2),
-      Offset(
-          trackRect.right - borderWidth, trackRect.bottom - shadowDepth / 2),
-      shadowPaint,
+    OreKnobPainter.paintBevel(
+      canvas: canvas,
+      rect: trackRect,
+      color: inactiveColor,
+      borderColor: borderColor,
+      highlightColor: trackHighlight,
+      shadowColor: colors.shadow,
+      borderWidth: borderWidth,
+      depth: shadowDepth,
+      highlightDepth: highlightDepth,
+      shadowDepth: shadowDepth,
+      paintFill: false,
     );
   }
 }
@@ -206,34 +205,25 @@ class OreSliderThumbShape extends SliderComponentShape {
     final canvas = context.canvas;
     final rect = Rect.fromCenter(center: center, width: size, height: size);
     final enabled = enableAnimation.value > 0.0;
-
-    final fillPaint = Paint()
-      ..color = enabled ? colors.surface : colors.surface
-      ..style = PaintingStyle.fill;
-    canvas.drawRect(rect, fillPaint);
-
-    final borderPaint = Paint()
-      ..color = enabled ? colors.border : colors.borderLight
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = borderWidth;
-    canvas.drawRect(rect.deflate(borderWidth / 2), borderPaint);
-
-    final highlightPaint = Paint()
-      ..color = colors.highlight
-      ..strokeWidth = highlightDepth;
-    canvas.drawLine(
-      Offset(rect.left + borderWidth, rect.top + highlightDepth / 2),
-      Offset(rect.right - borderWidth, rect.top + highlightDepth / 2),
-      highlightPaint,
+    final isInteracting = activationAnimation.value > 0.0;
+    final knobColor = isInteracting ? colors.surfaceHover : colors.surface;
+    final knobHighlight = OreHighlight.resolve(
+      colors: colors,
+      colored: false,
+      hovered: isInteracting,
     );
 
-    final shadowPaint = Paint()
-      ..color = colors.shadow
-      ..strokeWidth = shadowDepth;
-    canvas.drawLine(
-      Offset(rect.left + borderWidth, rect.bottom - shadowDepth / 2),
-      Offset(rect.right - borderWidth, rect.bottom - shadowDepth / 2),
-      shadowPaint,
+    OreKnobPainter.paintBevel(
+      canvas: canvas,
+      rect: rect,
+      color: knobColor,
+      borderColor: enabled ? colors.border : colors.borderLight,
+      highlightColor: knobHighlight,
+      shadowColor: colors.shadow,
+      borderWidth: borderWidth,
+      depth: shadowDepth,
+      highlightDepth: highlightDepth,
+      shadowDepth: shadowDepth,
     );
   }
 }

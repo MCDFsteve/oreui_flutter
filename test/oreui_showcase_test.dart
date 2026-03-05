@@ -12,5 +12,6 @@ void main() {
     expect(find.text('Buttons'), findsOneWidget);
     expect(find.text('Form'), findsOneWidget);
     expect(find.text('Toggles'), findsOneWidget);
+    expect(find.text('选项一'), findsOneWidget);
   });
 }

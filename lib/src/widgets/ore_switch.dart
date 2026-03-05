@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../theme/ore_highlight.dart';
 import '../theme/ore_theme.dart';
 import '../theme/ore_tokens.dart';
+import 'ore_knob.dart';
 import 'ore_surface.dart';
 
 class OreSwitch extends StatefulWidget {
@@ -166,11 +167,13 @@ class _OreSwitchState extends State<OreSwitch>
         ? (isOn ? colors.accent : colors.borderLight)
         : colors.surface;
     final iconBoxWidth = metrics.iconBoxWidth;
-    final trackHighlight = OreHighlight.resolve(
-      colors: colors,
-      colored: isOn,
-      hovered: isHovered,
-    );
+    final trackHighlight = isOn
+        ? OreHighlight.resolve(
+            colors: colors,
+            colored: true,
+            hovered: false,
+          )
+        : OreHighlight.muted(colors: colors);
     final knobHighlight = OreHighlight.resolve(
       colors: colors,
       colored: false,
@@ -246,23 +249,16 @@ class _OreSwitchState extends State<OreSwitch>
     final sliderColor =
         isInteracting ? colors.surfaceHover : colors.surface;
 
-    final slider = SizedBox(
-      width: metrics.knobSize,
-      height: metrics.knobSize,
-      child: OreSurface(
-        color: sliderColor,
-        borderColor: _enabled ? colors.border : colors.borderLight,
-        highlightColor: knobHighlight,
-        shadowColor: colors.shadow,
-        borderWidth: theme.borderWidth,
-        depth: shadowDepth,
-        highlightDepth: highlightDepth,
-        shadowDepth: shadowDepth,
-        swapHighlightOnPressed: false,
-        pressed: false,
-        padding: EdgeInsets.zero,
-        child: const SizedBox.shrink(),
-      ),
+    final slider = OreKnob(
+      size: metrics.knobSize,
+      color: sliderColor,
+      borderColor: _enabled ? colors.border : colors.borderLight,
+      highlightColor: knobHighlight,
+      shadowColor: colors.shadow,
+      borderWidth: theme.borderWidth,
+      depth: shadowDepth,
+      highlightDepth: highlightDepth,
+      shadowDepth: shadowDepth,
     );
     return MouseRegion(
       cursor: _enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,

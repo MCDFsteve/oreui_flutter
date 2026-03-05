@@ -5,6 +5,7 @@ export 'src/theme/ore_tokens.dart';
 export 'src/widgets/ore_button.dart';
 export 'src/widgets/ore_card.dart';
 export 'src/widgets/ore_checkbox.dart';
+export 'src/widgets/ore_choice_buttons.dart';
 export 'src/widgets/ore_divider.dart';
 export 'src/widgets/ore_slider.dart';
 export 'src/widgets/ore_switch.dart';

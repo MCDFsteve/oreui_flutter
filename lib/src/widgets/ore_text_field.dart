@@ -107,6 +107,8 @@ class OreTextField extends StatelessWidget {
       style: theme.typography.body.copyWith(color: textColor),
       textAlignVertical: textAlignVertical,
       cursorColor: colors.success,
+      cursorWidth: depthUnit * 0.5,
+      cursorRadius: Radius.zero,
       decoration: InputDecoration(
         border: InputBorder.none,
         isDense: true,

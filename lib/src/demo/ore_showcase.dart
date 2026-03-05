@@ -5,6 +5,7 @@ import '../theme/ore_tokens.dart';
 import '../widgets/ore_button.dart';
 import '../widgets/ore_card.dart';
 import '../widgets/ore_checkbox.dart';
+import '../widgets/ore_choice_buttons.dart';
 import '../widgets/ore_divider.dart';
 import '../widgets/ore_slider.dart';
 import '../widgets/ore_switch.dart';
@@ -42,6 +43,7 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
   bool _toggled = true;
   bool? _tri = null;
   double _slider = 0.6;
+  int _choice = 0;
   final TextEditingController _controller =
       TextEditingController(text: 'Ore UI');
 
@@ -136,6 +138,15 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
                       runSpacing: OreTokens.gapSm,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
+                        OreChoiceButtons(
+                          items: const [
+                            Text('选项一'),
+                            Text('选项二'),
+                            Text('选项三'),
+                          ],
+                          selectedIndex: _choice,
+                          onChanged: (value) => setState(() => _choice = value),
+                        ),
                         OreCheckbox(
                           value: _checked,
                           onChanged: (value) =>

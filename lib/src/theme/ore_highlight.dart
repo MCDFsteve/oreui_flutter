@@ -16,6 +16,16 @@ class OreHighlight {
           ? OreTokens.coloredHighlightStrong
           : OreTokens.coloredHighlight;
     }
-    return hovered ? colors.highlightStrong : colors.highlight;
+    return muted(colors: colors);
+  }
+
+  static Color muted({
+    required OreColors colors,
+    double factor = 0.4,
+  }) {
+    final base = colors.highlight;
+    if (base.alpha == 0) return base;
+    final nextOpacity = (base.opacity * factor).clamp(0.0, 1.0);
+    return base.withOpacity(nextOpacity);
   }
 }

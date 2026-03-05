@@ -28,7 +28,7 @@ class OreCard extends StatelessWidget {
       child: OreSurface(
         color: color ?? colors.surface,
         borderColor: colors.border,
-        highlightColor: colors.highlightStrong,
+        highlightColor: colors.highlight,
         shadowColor: colors.shadow,
         borderWidth: theme.borderWidth,
         depth: theme.bevelDepth,

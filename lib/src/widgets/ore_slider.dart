@@ -189,7 +189,7 @@ class OreSliderThumbShape extends SliderComponentShape {
     canvas.drawRect(rect.deflate(borderWidth / 2), borderPaint);
 
     final highlightPaint = Paint()
-      ..color = colors.highlightStrong
+      ..color = colors.highlight
       ..strokeWidth = borderWidth;
     canvas.drawLine(
       Offset(rect.left + borderWidth, rect.top + borderWidth / 2),

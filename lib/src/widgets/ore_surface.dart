@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 
 import '../theme/ore_theme.dart';
@@ -14,6 +16,7 @@ class OreSurface extends StatelessWidget {
     required this.depth,
     this.padding,
     this.pressed = false,
+    this.ignoreShadowPadding = false,
   });
 
   final Widget child;
@@ -25,6 +28,7 @@ class OreSurface extends StatelessWidget {
   final double depth;
   final EdgeInsetsGeometry? padding;
   final bool pressed;
+  final bool ignoreShadowPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -33,10 +37,25 @@ class OreSurface extends StatelessWidget {
     final shadow = pressed ? highlightColor : shadowColor;
     final cornerHighlight = highlight.alpha == 0
         ? highlight
-        : Color.lerp(highlight, const Color(0xFFFFFFFF), 0.35)!;
+        : Color.lerp(highlight, const Color(0xFFFFFFFF), 0.2)!;
     final innerDepth = depth.clamp(0, 8).toDouble();
     final highlightDepth = innerDepth;
     final shadowDepth = innerDepth;
+    final weakHighlight = highlight.alpha == 0
+        ? highlight
+        : highlight.withOpacity((highlight.opacity * 0.66).clamp(0, 1));
+
+    final resolvedPadding =
+        padding?.resolve(Directionality.of(context)) ??
+            EdgeInsets.all(theme.gap);
+    final adjustedPadding = ignoreShadowPadding
+        ? EdgeInsets.fromLTRB(
+            resolvedPadding.left,
+            resolvedPadding.top,
+            resolvedPadding.right,
+            math.max(0, resolvedPadding.bottom - shadowDepth),
+          )
+        : resolvedPadding;
 
     return Container(
       decoration: BoxDecoration(color: color),
@@ -73,6 +92,7 @@ class OreSurface extends StatelessWidget {
             ),
           ],
           if (innerDepth > 0) ...[
+            // Top highlight (strong)
             Positioned(
               left: borderWidth,
               right: borderWidth,
@@ -80,27 +100,31 @@ class OreSurface extends StatelessWidget {
               height: highlightDepth,
               child: Container(color: highlight),
             ),
+            // Left highlight (strong)
             Positioned(
               left: borderWidth,
               top: borderWidth + highlightDepth,
-              bottom: borderWidth + highlightDepth + shadowDepth,
+              bottom: borderWidth + shadowDepth + highlightDepth,
               width: highlightDepth,
               child: Container(color: highlight),
             ),
+            // Right highlight (weak)
             Positioned(
               right: borderWidth,
               top: borderWidth + highlightDepth,
-              bottom: borderWidth + highlightDepth + shadowDepth,
+              bottom: borderWidth + shadowDepth + highlightDepth,
               width: highlightDepth,
-              child: Container(color: highlight),
+              child: Container(color: weakHighlight),
             ),
+            // Bottom highlight (weak) sits above shadow
             Positioned(
               left: borderWidth,
               right: borderWidth,
               bottom: borderWidth + shadowDepth,
               height: highlightDepth,
-              child: Container(color: highlight),
+              child: Container(color: weakHighlight),
             ),
+            // Bright corners (top-right, bottom-left)
             Positioned(
               right: borderWidth,
               top: borderWidth,
@@ -115,6 +139,7 @@ class OreSurface extends StatelessWidget {
               height: highlightDepth,
               child: Container(color: cornerHighlight),
             ),
+            // Bottom shadow
             Positioned(
               left: borderWidth,
               right: borderWidth,
@@ -124,7 +149,7 @@ class OreSurface extends StatelessWidget {
             ),
           ],
           Padding(
-            padding: padding ?? EdgeInsets.all(theme.gap),
+            padding: adjustedPadding,
             child: child,
           ),
         ],

@@ -71,6 +71,7 @@ class _OreButtonState extends State<OreButton> {
       depth: isPressed ? 0 : theme.bevelDepth,
       padding: padding,
       pressed: isPressed,
+      ignoreShadowPadding: true,
       child: content,
     );
 
@@ -192,10 +193,15 @@ class _OreButtonState extends State<OreButton> {
         background: colors.surface,
         borderColor: colors.borderLight,
         shadowColor: colors.borderLight,
-        highlightColor: colors.highlightStrong,
+        highlightColor: colors.highlight,
         textColor: colors.textDisabled,
       );
     }
+
+    final neutralHighlight =
+        hovered ? colors.highlightStrong : colors.highlight;
+    final coloredHighlight =
+        hovered ? const Color(0x66FFFFFF) : const Color(0x33FFFFFF);
 
     switch (widget.variant) {
       case OreButtonVariant.primary:
@@ -204,7 +210,7 @@ class _OreButtonState extends State<OreButton> {
               colors.accentPressed, hovered, pressed),
           borderColor: colors.border,
           shadowColor: colors.accentPressed,
-          highlightColor: colors.highlightStrong,
+          highlightColor: coloredHighlight,
           textColor: colors.textInverse,
         );
       case OreButtonVariant.danger:
@@ -213,7 +219,7 @@ class _OreButtonState extends State<OreButton> {
               colors.dangerPressed, hovered, pressed),
           borderColor: colors.border,
           shadowColor: colors.dangerPressed,
-          highlightColor: colors.highlightStrong,
+          highlightColor: coloredHighlight,
           textColor: colors.textInverse,
         );
       case OreButtonVariant.secondary:
@@ -222,7 +228,7 @@ class _OreButtonState extends State<OreButton> {
               colors.surfacePressed, hovered, pressed),
           borderColor: colors.border,
           shadowColor: colors.shadow,
-          highlightColor: colors.highlightStrong,
+          highlightColor: neutralHighlight,
           textColor: colors.textPrimary,
         );
       case OreButtonVariant.ghost:

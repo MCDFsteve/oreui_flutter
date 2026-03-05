@@ -67,7 +67,7 @@ class _OreSwitchState extends State<OreSwitch> {
       child: OreSurface(
         color: sliderColor,
         borderColor: _enabled ? colors.border : colors.borderLight,
-        highlightColor: colors.highlightStrong,
+        highlightColor: colors.highlight,
         shadowColor: colors.shadow,
         borderWidth: theme.borderWidth,
         depth: isPressed ? 0 : theme.bevelDepth,

@@ -57,9 +57,20 @@ class _OreButtonState extends State<OreButton> {
     final height = _height(widget.size);
     final padding = _padding(widget.size);
 
+    final visualDepth = theme.bevelDepth;
+    final shadowDepth = isPressed ? 0.0 : visualDepth;
+    final highlightDepth =
+        (visualDepth - 1).clamp(0.0, visualDepth).toDouble();
+    final contentOffsetY = isPressed ? 0.0 : -visualDepth / 2;
+
     Widget content = DefaultTextStyle.merge(
       style: theme.typography.label.copyWith(color: config.textColor),
       child: _buildContent(config.textColor),
+    );
+    content = AnimatedContainer(
+      duration: OreTokens.fast,
+      transform: Matrix4.translationValues(0, contentOffsetY, 0),
+      child: content,
     );
 
     final surface = OreSurface(
@@ -68,16 +79,31 @@ class _OreButtonState extends State<OreButton> {
       highlightColor: config.highlightColor,
       shadowColor: config.shadowColor,
       borderWidth: theme.borderWidth,
-      depth: isPressed ? 0 : theme.bevelDepth,
+      depth: visualDepth,
+      highlightDepth: highlightDepth,
+      shadowDepth: shadowDepth,
+      swapHighlightOnPressed: false,
+      alignment: Alignment.center,
       padding: padding,
       pressed: isPressed,
-      ignoreShadowPadding: true,
       child: content,
     );
 
-    Widget buttonBody = ConstrainedBox(
-      constraints: BoxConstraints(minHeight: height),
-      child: surface,
+    final pressedCut = isPressed ? visualDepth : 0.0;
+    final pressedHeight =
+        (height - pressedCut).clamp(0.0, height);
+    final widthFactor = widget.fullWidth ? null : 1.0;
+
+    Widget buttonBody = SizedBox(
+      height: height,
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        widthFactor: widthFactor,
+        child: SizedBox(
+          height: pressedHeight,
+          child: surface,
+        ),
+      ),
     );
 
     if (widget.fullWidth) {
@@ -98,11 +124,7 @@ class _OreButtonState extends State<OreButton> {
           onTapUp: _enabled ? (_) => _setPressed(false) : null,
           onTapCancel: _enabled ? () => _setPressed(false) : null,
           behavior: HitTestBehavior.opaque,
-          child: AnimatedContainer(
-            duration: OreTokens.fast,
-            transform: Matrix4.translationValues(0, isPressed ? 4 : 0, 0),
-            child: buttonBody,
-          ),
+          child: buttonBody,
         ),
       ),
     );

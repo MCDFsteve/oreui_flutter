@@ -24,6 +24,9 @@ class OreSlider extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = OreTheme.of(context);
     final colors = theme.colors;
+    final highlightDepth =
+        (theme.bevelDepth - 1).clamp(0.0, theme.bevelDepth).toDouble();
+    final shadowDepth = theme.bevelDepth;
 
     return SliderTheme(
       data: SliderTheme.of(context).copyWith(
@@ -35,11 +38,14 @@ class OreSlider extends StatelessWidget {
         thumbShape: OreSliderThumbShape(
           colors: colors,
           borderWidth: theme.borderWidth,
-          bevelDepth: theme.bevelDepth,
+          highlightDepth: highlightDepth,
+          shadowDepth: shadowDepth,
         ),
         trackShape: OreSliderTrackShape(
           colors: colors,
           borderWidth: theme.borderWidth,
+          highlightDepth: highlightDepth,
+          shadowDepth: shadowDepth,
         ),
       ),
       child: Slider(
@@ -58,10 +64,14 @@ class OreSliderTrackShape extends SliderTrackShape {
   const OreSliderTrackShape({
     required this.colors,
     required this.borderWidth,
+    required this.highlightDepth,
+    required this.shadowDepth,
   });
 
   final OreColors colors;
   final double borderWidth;
+  final double highlightDepth;
+  final double shadowDepth;
 
   @override
   Rect getPreferredRect({
@@ -124,19 +134,20 @@ class OreSliderTrackShape extends SliderTrackShape {
 
     final highlightPaint = Paint()
       ..color = colors.highlight
-      ..strokeWidth = borderWidth;
+      ..strokeWidth = highlightDepth;
     canvas.drawLine(
-      Offset(trackRect.left, trackRect.top + borderWidth / 2),
-      Offset(trackRect.right, trackRect.top + borderWidth / 2),
+      Offset(trackRect.left + borderWidth, trackRect.top + highlightDepth / 2),
+      Offset(trackRect.right - borderWidth, trackRect.top + highlightDepth / 2),
       highlightPaint,
     );
 
     final shadowPaint = Paint()
       ..color = colors.shadow
-      ..strokeWidth = borderWidth;
+      ..strokeWidth = shadowDepth;
     canvas.drawLine(
-      Offset(trackRect.left, trackRect.bottom - borderWidth / 2),
-      Offset(trackRect.right, trackRect.bottom - borderWidth / 2),
+      Offset(trackRect.left + borderWidth, trackRect.bottom - shadowDepth / 2),
+      Offset(
+          trackRect.right - borderWidth, trackRect.bottom - shadowDepth / 2),
       shadowPaint,
     );
   }
@@ -146,12 +157,14 @@ class OreSliderThumbShape extends SliderComponentShape {
   const OreSliderThumbShape({
     required this.colors,
     required this.borderWidth,
-    required this.bevelDepth,
+    required this.highlightDepth,
+    required this.shadowDepth,
   });
 
   final OreColors colors;
   final double borderWidth;
-  final double bevelDepth;
+  final double highlightDepth;
+  final double shadowDepth;
 
   @override
   Size getPreferredSize(bool isEnabled, bool isDiscrete) {
@@ -190,19 +203,19 @@ class OreSliderThumbShape extends SliderComponentShape {
 
     final highlightPaint = Paint()
       ..color = colors.highlight
-      ..strokeWidth = borderWidth;
+      ..strokeWidth = highlightDepth;
     canvas.drawLine(
-      Offset(rect.left + borderWidth, rect.top + borderWidth / 2),
-      Offset(rect.right - borderWidth, rect.top + borderWidth / 2),
+      Offset(rect.left + borderWidth, rect.top + highlightDepth / 2),
+      Offset(rect.right - borderWidth, rect.top + highlightDepth / 2),
       highlightPaint,
     );
 
     final shadowPaint = Paint()
       ..color = colors.shadow
-      ..strokeWidth = bevelDepth;
+      ..strokeWidth = shadowDepth;
     canvas.drawLine(
-      Offset(rect.left + borderWidth, rect.bottom - borderWidth / 2),
-      Offset(rect.right - borderWidth, rect.bottom - borderWidth / 2),
+      Offset(rect.left + borderWidth, rect.bottom - shadowDepth / 2),
+      Offset(rect.right - borderWidth, rect.bottom - shadowDepth / 2),
       shadowPaint,
     );
   }

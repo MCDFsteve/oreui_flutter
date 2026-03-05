@@ -31,6 +31,9 @@ class _OreSwitchState extends State<OreSwitch> {
     final isOn = widget.value;
     final isHovered = _hovered && _enabled;
     final isPressed = _pressed && _enabled;
+    final highlightDepth =
+        (theme.bevelDepth - 1).clamp(0.0, theme.bevelDepth).toDouble();
+    final shadowDepth = theme.bevelDepth;
 
     final trackColor = _enabled
         ? LinearGradient(
@@ -71,6 +74,8 @@ class _OreSwitchState extends State<OreSwitch> {
         shadowColor: colors.shadow,
         borderWidth: theme.borderWidth,
         depth: isPressed ? 0 : theme.bevelDepth,
+        highlightDepth: highlightDepth,
+        shadowDepth: shadowDepth,
         pressed: isPressed,
         padding: EdgeInsets.zero,
         child: const SizedBox.shrink(),

@@ -22,6 +22,9 @@ class OreCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = OreTheme.of(context);
     final colors = theme.colors;
+    final highlightDepth =
+        (theme.bevelDepth - 1).clamp(0.0, theme.bevelDepth).toDouble();
+    final shadowDepth = theme.bevelDepth;
 
     return Container(
       margin: margin,
@@ -32,6 +35,8 @@ class OreCard extends StatelessWidget {
         shadowColor: colors.shadow,
         borderWidth: theme.borderWidth,
         depth: theme.bevelDepth,
+        highlightDepth: highlightDepth,
+        shadowDepth: shadowDepth,
         padding: padding ?? const EdgeInsets.all(OreTokens.gapMd),
         child: DefaultTextStyle.merge(
           style: theme.typography.body.copyWith(color: colors.textPrimary),

@@ -38,6 +38,9 @@ class _OreCheckboxState extends State<OreCheckbox> {
     final isMixed = widget.tristate && widget.value == null;
     final isPressed = _pressed && _enabled;
     final isHovered = _hovered && _enabled;
+    final highlightDepth =
+        (theme.bevelDepth - 1).clamp(0.0, theme.bevelDepth).toDouble();
+    final shadowDepth = theme.bevelDepth;
 
     final background = _resolveBackground(
       colors,
@@ -59,6 +62,8 @@ class _OreCheckboxState extends State<OreCheckbox> {
         shadowColor: shadowColor,
         borderWidth: theme.borderWidth,
         depth: isPressed ? 0 : 2,
+        highlightDepth: highlightDepth,
+        shadowDepth: shadowDepth,
         pressed: isPressed,
         padding: EdgeInsets.zero,
         child: Center(

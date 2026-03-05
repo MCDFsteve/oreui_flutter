@@ -14,6 +14,10 @@ class OreSurface extends StatelessWidget {
     required this.shadowColor,
     required this.borderWidth,
     required this.depth,
+    this.highlightDepth,
+    this.shadowDepth,
+    this.swapHighlightOnPressed = true,
+    this.alignment = AlignmentDirectional.topStart,
     this.padding,
     this.pressed = false,
     this.ignoreShadowPadding = false,
@@ -26,6 +30,10 @@ class OreSurface extends StatelessWidget {
   final Color shadowColor;
   final double borderWidth;
   final double depth;
+  final double? highlightDepth;
+  final double? shadowDepth;
+  final bool swapHighlightOnPressed;
+  final AlignmentGeometry alignment;
   final EdgeInsetsGeometry? padding;
   final bool pressed;
   final bool ignoreShadowPadding;
@@ -33,14 +41,15 @@ class OreSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = OreTheme.of(context);
-    final highlight = pressed ? shadowColor : highlightColor;
-    final shadow = pressed ? highlightColor : shadowColor;
+    final shouldSwap = pressed && swapHighlightOnPressed;
+    final highlight = shouldSwap ? shadowColor : highlightColor;
+    final shadow = shouldSwap ? highlightColor : shadowColor;
     final cornerHighlight = highlight.alpha == 0
         ? highlight
         : Color.lerp(highlight, const Color(0xFFFFFFFF), 0.2)!;
-    final innerDepth = depth.clamp(0, 8).toDouble();
-    final highlightDepth = innerDepth;
-    final shadowDepth = innerDepth;
+    final resolvedHighlightDepth =
+        (highlightDepth ?? depth).clamp(0, 8).toDouble();
+    final resolvedShadowDepth = (shadowDepth ?? depth).clamp(0, 8).toDouble();
     final weakHighlight = highlight.alpha == 0
         ? highlight
         : highlight.withOpacity((highlight.opacity * 0.66).clamp(0, 1));
@@ -53,13 +62,14 @@ class OreSurface extends StatelessWidget {
             resolvedPadding.left,
             resolvedPadding.top,
             resolvedPadding.right,
-            math.max(0, resolvedPadding.bottom - shadowDepth),
+            math.max(0, resolvedPadding.bottom - resolvedShadowDepth),
           )
         : resolvedPadding;
 
     return Container(
       decoration: BoxDecoration(color: color),
       child: Stack(
+        alignment: alignment,
         children: [
           if (borderWidth > 0) ...[
             Positioned(
@@ -91,60 +101,64 @@ class OreSurface extends StatelessWidget {
               child: Container(color: borderColor),
             ),
           ],
-          if (innerDepth > 0) ...[
+          if (resolvedHighlightDepth > 0) ...[
             // Top highlight (strong)
             Positioned(
               left: borderWidth,
               right: borderWidth,
               top: borderWidth,
-              height: highlightDepth,
+              height: resolvedHighlightDepth,
               child: Container(color: highlight),
             ),
             // Left highlight (strong)
             Positioned(
               left: borderWidth,
-              top: borderWidth + highlightDepth,
-              bottom: borderWidth + shadowDepth + highlightDepth,
-              width: highlightDepth,
+              top: borderWidth + resolvedHighlightDepth,
+              bottom:
+                  borderWidth + resolvedShadowDepth + resolvedHighlightDepth,
+              width: resolvedHighlightDepth,
               child: Container(color: highlight),
             ),
             // Right highlight (weak)
             Positioned(
               right: borderWidth,
-              top: borderWidth + highlightDepth,
-              bottom: borderWidth + shadowDepth + highlightDepth,
-              width: highlightDepth,
+              top: borderWidth + resolvedHighlightDepth,
+              bottom:
+                  borderWidth + resolvedShadowDepth + resolvedHighlightDepth,
+              width: resolvedHighlightDepth,
               child: Container(color: weakHighlight),
             ),
             // Bottom highlight (weak) sits above shadow
             Positioned(
               left: borderWidth,
               right: borderWidth,
-              bottom: borderWidth + shadowDepth,
-              height: highlightDepth,
+              bottom: borderWidth + resolvedShadowDepth,
+              height: resolvedHighlightDepth,
               child: Container(color: weakHighlight),
             ),
             // Bright corners (top-right, bottom-left)
             Positioned(
               right: borderWidth,
               top: borderWidth,
-              width: highlightDepth,
-              height: highlightDepth,
+              width: resolvedHighlightDepth,
+              height: resolvedHighlightDepth,
               child: Container(color: cornerHighlight),
             ),
             Positioned(
               left: borderWidth,
-              bottom: borderWidth + shadowDepth,
-              width: highlightDepth,
-              height: highlightDepth,
+              bottom: borderWidth + resolvedShadowDepth,
+              width: resolvedHighlightDepth,
+              height: resolvedHighlightDepth,
               child: Container(color: cornerHighlight),
             ),
+          ],
+          if (resolvedShadowDepth > 0) ...[
             // Bottom shadow
             Positioned(
               left: borderWidth,
               right: borderWidth,
               bottom: borderWidth,
-              height: shadowDepth,
+              height: resolvedShadowDepth,
               child: Container(color: shadow),
             ),
           ],

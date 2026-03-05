@@ -6,21 +6,43 @@ class OreTokens {
 
   static const double radius = 0;
   static const double borderWidth = 2;
-  static const double focusWidth = 2;
+  static const double focusWidth = borderWidth;
 
-  static const double controlHeightSm = 32;
-  static const double controlHeightMd = 40;
-  static const double controlHeightLg = 48;
+  static const double _unit = borderWidth;
 
-  static const double gapXs = 4;
-  static const double gapSm = 6;
-  static const double gapMd = 10;
-  static const double gapLg = 14;
-  static const double gapXl = 20;
+  static const double controlHeightSm = _unit * 16;
+  static const double controlHeightMd = _unit * 20;
+  static const double controlHeightLg = _unit * 24;
 
-  static const EdgeInsets paddingSm = EdgeInsets.symmetric(horizontal: 10);
-  static const EdgeInsets paddingMd = EdgeInsets.symmetric(horizontal: 14);
-  static const EdgeInsets paddingLg = EdgeInsets.symmetric(horizontal: 18);
+  static const double gapXs = _unit * 2;
+  static const double gapSm = _unit * 3;
+  static const double gapMd = _unit * 5;
+  static const double gapLg = _unit * 7;
+  static const double gapXl = _unit * 10;
+
+  static const EdgeInsets paddingSm =
+      EdgeInsets.symmetric(horizontal: _unit * 5);
+  static const EdgeInsets paddingMd =
+      EdgeInsets.symmetric(horizontal: _unit * 7);
+  static const EdgeInsets paddingLg =
+      EdgeInsets.symmetric(horizontal: _unit * 9);
+
+  static const double switchAspect = 11 / 5;
+  static const double switchTrackUnits = 14;
+  static const double switchThumbUnits = 16;
+  static const double switchIconUnits = 6;
+  static const double sliderTrackUnits = 4;
+  static const double sliderThumbUnits = 14;
+  static const double checkboxSizeUnits = 10;
+  static const double checkboxMarkUnits = 8;
+  static const double checkboxMixedWidthUnits = 5;
+  static const double checkboxMixedHeightUnits = 1;
+  static const double buttonPadSmHUnits = 6;
+  static const double buttonPadSmVUnits = 2;
+  static const double buttonPadMdHUnits = 8;
+  static const double buttonPadMdVUnits = 3;
+  static const double buttonPadLgHUnits = 10;
+  static const double buttonPadLgVUnits = 4;
 
   static const Duration fast = Duration(milliseconds: 120);
   static const Duration medium = Duration(milliseconds: 180);

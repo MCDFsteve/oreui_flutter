@@ -46,9 +46,9 @@ class OreTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = OreTheme.of(context);
     final colors = theme.colors;
-    final highlightDepth =
-        (theme.bevelDepth - 1).clamp(0.0, theme.bevelDepth).toDouble();
-    final shadowDepth = theme.bevelDepth;
+    final depthUnit = theme.borderWidth;
+    final highlightDepth = depthUnit;
+    final shadowDepth = depthUnit * 2;
 
     final surfaceColor = enabled ? colors.surfaceDark : colors.surface;
     final borderColor = enabled ? colors.border : colors.borderLight;
@@ -65,7 +65,7 @@ class OreTextField extends StatelessWidget {
         highlightColor: colors.shadowStrong,
         shadowColor: enabled ? colors.shadowStrong : colors.borderLight,
         borderWidth: theme.borderWidth,
-        depth: 4,
+        depth: shadowDepth,
         highlightDepth: highlightDepth,
         shadowDepth: shadowDepth,
         padding: EdgeInsets.zero,

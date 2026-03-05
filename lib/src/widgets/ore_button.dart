@@ -55,12 +55,12 @@ class _OreButtonState extends State<OreButton> {
 
     final config = _resolveColors(colors, isHovered, isPressed, _enabled);
     final height = _height(widget.size);
-    final padding = _padding(widget.size);
+    final padding = _padding(widget.size, theme.borderWidth);
 
-    final visualDepth = theme.bevelDepth;
+    final depthUnit = theme.borderWidth;
+    final visualDepth = depthUnit * 2;
     final shadowDepth = isPressed ? 0.0 : visualDepth;
-    final highlightDepth =
-        (visualDepth - 1).clamp(0.0, visualDepth).toDouble();
+    final highlightDepth = depthUnit;
     final contentOffsetY = isPressed ? 0.0 : -visualDepth / 2;
 
     Widget content = DefaultTextStyle.merge(
@@ -193,14 +193,23 @@ class _OreButtonState extends State<OreButton> {
     }
   }
 
-  EdgeInsetsGeometry _padding(OreButtonSize size) {
+  EdgeInsetsGeometry _padding(OreButtonSize size, double unit) {
     switch (size) {
       case OreButtonSize.sm:
-        return const EdgeInsets.symmetric(horizontal: 12, vertical: 4);
+        return EdgeInsets.symmetric(
+          horizontal: unit * OreTokens.buttonPadSmHUnits,
+          vertical: unit * OreTokens.buttonPadSmVUnits,
+        );
       case OreButtonSize.md:
-        return const EdgeInsets.symmetric(horizontal: 16, vertical: 6);
+        return EdgeInsets.symmetric(
+          horizontal: unit * OreTokens.buttonPadMdHUnits,
+          vertical: unit * OreTokens.buttonPadMdVUnits,
+        );
       case OreButtonSize.lg:
-        return const EdgeInsets.symmetric(horizontal: 20, vertical: 8);
+        return EdgeInsets.symmetric(
+          horizontal: unit * OreTokens.buttonPadLgHUnits,
+          vertical: unit * OreTokens.buttonPadLgVUnits,
+        );
     }
   }
 

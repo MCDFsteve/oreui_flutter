@@ -284,7 +284,7 @@ class OreThemeData extends ThemeExtension<OreThemeData> {
       borderWidth: OreTokens.borderWidth,
       focusWidth: OreTokens.focusWidth,
       gap: OreTokens.gapSm,
-      bevelDepth: 4,
+      bevelDepth: OreTokens.borderWidth * 2,
     );
   }
 

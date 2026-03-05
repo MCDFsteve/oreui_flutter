@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/ore_theme.dart';
+import '../theme/ore_tokens.dart';
 
 class OreSlider extends StatelessWidget {
   const OreSlider({
@@ -28,13 +29,15 @@ class OreSlider extends StatelessWidget {
     final valueIndicatorTextStyle =
         (sliderTheme.valueIndicatorTextStyle ?? theme.typography.caption)
             .copyWith(fontFamily: theme.typography.body.fontFamily);
-    final highlightDepth =
-        (theme.bevelDepth - 1).clamp(0.0, theme.bevelDepth).toDouble();
-    final shadowDepth = theme.bevelDepth;
+    final depthUnit = theme.borderWidth;
+    final highlightDepth = depthUnit;
+    final shadowDepth = depthUnit * 2;
+    final trackHeight = depthUnit * OreTokens.sliderTrackUnits;
+    final thumbSize = depthUnit * OreTokens.sliderThumbUnits;
 
     return SliderTheme(
       data: sliderTheme.copyWith(
-        trackHeight: 8,
+        trackHeight: trackHeight,
         activeTrackColor: colors.accent,
         inactiveTrackColor: colors.borderLight,
         thumbColor: colors.surface,
@@ -45,12 +48,14 @@ class OreSlider extends StatelessWidget {
           borderWidth: theme.borderWidth,
           highlightDepth: highlightDepth,
           shadowDepth: shadowDepth,
+          size: thumbSize,
         ),
         trackShape: OreSliderTrackShape(
           colors: colors,
           borderWidth: theme.borderWidth,
           highlightDepth: highlightDepth,
           shadowDepth: shadowDepth,
+          trackHeight: trackHeight,
         ),
       ),
       child: Slider(
@@ -71,12 +76,14 @@ class OreSliderTrackShape extends SliderTrackShape {
     required this.borderWidth,
     required this.highlightDepth,
     required this.shadowDepth,
+    required this.trackHeight,
   });
 
   final OreColors colors;
   final double borderWidth;
   final double highlightDepth;
   final double shadowDepth;
+  final double trackHeight;
 
   @override
   Rect getPreferredRect({
@@ -86,11 +93,14 @@ class OreSliderTrackShape extends SliderTrackShape {
     bool isEnabled = false,
     bool isDiscrete = false,
   }) {
-    final trackHeight = sliderTheme.trackHeight ?? 8;
+    final resolvedTrackHeight =
+        sliderTheme.trackHeight ?? trackHeight;
     final trackLeft = offset.dx + borderWidth;
-    final trackTop = offset.dy + (parentBox.size.height - trackHeight) / 2;
+    final trackTop =
+        offset.dy + (parentBox.size.height - resolvedTrackHeight) / 2;
     final trackWidth = parentBox.size.width - borderWidth * 2;
-    return Rect.fromLTWH(trackLeft, trackTop, trackWidth, trackHeight);
+    return Rect.fromLTWH(
+        trackLeft, trackTop, trackWidth, resolvedTrackHeight);
   }
 
   @override
@@ -164,16 +174,18 @@ class OreSliderThumbShape extends SliderComponentShape {
     required this.borderWidth,
     required this.highlightDepth,
     required this.shadowDepth,
+    required this.size,
   });
 
   final OreColors colors;
   final double borderWidth;
   final double highlightDepth;
   final double shadowDepth;
+  final double size;
 
   @override
   Size getPreferredSize(bool isEnabled, bool isDiscrete) {
-    return const Size(28, 28);
+    return Size(size, size);
   }
 
   @override
@@ -192,7 +204,7 @@ class OreSliderThumbShape extends SliderComponentShape {
     required Size sizeWithOverflow,
   }) {
     final canvas = context.canvas;
-    final rect = Rect.fromCenter(center: center, width: 28, height: 28);
+    final rect = Rect.fromCenter(center: center, width: size, height: size);
     final enabled = enableAnimation.value > 0.0;
 
     final fillPaint = Paint()

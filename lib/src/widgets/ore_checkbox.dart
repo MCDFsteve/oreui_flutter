@@ -38,9 +38,13 @@ class _OreCheckboxState extends State<OreCheckbox> {
     final isMixed = widget.tristate && widget.value == null;
     final isPressed = _pressed && _enabled;
     final isHovered = _hovered && _enabled;
-    final highlightDepth =
-        (theme.bevelDepth - 1).clamp(0.0, theme.bevelDepth).toDouble();
-    final shadowDepth = theme.bevelDepth;
+    final depthUnit = theme.borderWidth;
+    final highlightDepth = depthUnit;
+    final shadowDepth = depthUnit * 2;
+    final indicatorSize = depthUnit * OreTokens.checkboxSizeUnits;
+    final markSize = depthUnit * OreTokens.checkboxMarkUnits;
+    final mixedWidth = depthUnit * OreTokens.checkboxMixedWidthUnits;
+    final mixedHeight = depthUnit * OreTokens.checkboxMixedHeightUnits;
 
     final background = _resolveBackground(
       colors,
@@ -53,21 +57,29 @@ class _OreCheckboxState extends State<OreCheckbox> {
     final shadowColor = isChecked || isMixed ? colors.accentPressed : colors.shadow;
 
     final indicator = SizedBox(
-      width: 20,
-      height: 20,
+      width: indicatorSize,
+      height: indicatorSize,
       child: OreSurface(
         color: background,
         borderColor: borderColor,
         highlightColor: colors.highlight,
         shadowColor: shadowColor,
         borderWidth: theme.borderWidth,
-        depth: isPressed ? 0 : 2,
+        depth: isPressed ? 0 : shadowDepth,
         highlightDepth: highlightDepth,
         shadowDepth: shadowDepth,
         pressed: isPressed,
         padding: EdgeInsets.zero,
         child: Center(
-          child: _buildMark(colors, isChecked, isMixed, _enabled),
+          child: _buildMark(
+            colors,
+            isChecked,
+            isMixed,
+            _enabled,
+            checkSize: markSize,
+            mixedWidth: mixedWidth,
+            mixedHeight: mixedHeight,
+          ),
         ),
       ),
     );
@@ -110,19 +122,22 @@ class _OreCheckboxState extends State<OreCheckbox> {
     OreColors colors,
     bool isChecked,
     bool isMixed,
-    bool enabled,
-  ) {
+    bool enabled, {
+    required double checkSize,
+    required double mixedWidth,
+    required double mixedHeight,
+  }) {
     if (isChecked) {
       return Icon(
         Icons.check,
-        size: 16,
+        size: checkSize,
         color: colors.textInverse,
       );
     }
     if (isMixed) {
       return Container(
-        width: 10,
-        height: 2,
+        width: mixedWidth,
+        height: mixedHeight,
         color: colors.textInverse,
       );
     }

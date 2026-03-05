@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../theme/ore_theme.dart';
+import '../theme/ore_tokens.dart';
 import 'ore_surface.dart';
 
 class OreSwitch extends StatefulWidget {
@@ -17,14 +18,25 @@ class OreSwitch extends StatefulWidget {
   State<OreSwitch> createState() => _OreSwitchState();
 }
 
+class _SwitchMetrics {
+  const _SwitchMetrics({
+    required this.trackWidth,
+    required this.trackHeight,
+    required this.knobSize,
+    required this.iconSize,
+  });
+
+  final double trackWidth;
+  final double trackHeight;
+  final double knobSize;
+  final double iconSize;
+
+  double get maxLeft => trackWidth - knobSize;
+  double get iconBoxWidth => trackWidth / 2;
+}
+
 class _OreSwitchState extends State<OreSwitch>
     with SingleTickerProviderStateMixin {
-  static const double _trackWidth = 53.0;
-  static const double _trackHeight = 24.0;
-  static const double _knobSize = 28.0;
-  static const double _maxLeft = _trackWidth - _knobSize;
-  static const double _iconBaseSize = 16.0;
-  static const double _iconVisualScale = 2.0;
   static const int _firstUpMs = 60;
   static const int _firstDownMs = 60;
   static const int _midPauseMs = 30;
@@ -53,8 +65,13 @@ class _OreSwitchState extends State<OreSwitch>
       vsync: this,
       duration: Duration(milliseconds: _totalMs),
     );
-    _leftAnimation =
-        AlwaysStoppedAnimation(widget.value ? _maxLeft : 0.0);
+    _leftAnimation = const AlwaysStoppedAnimation(0.0);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncStaticPosition();
   }
 
   @override
@@ -62,10 +79,10 @@ class _OreSwitchState extends State<OreSwitch>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.value != widget.value) {
       final theme = OreTheme.of(context);
-      final highlightDepth =
-          (theme.bevelDepth - 1).clamp(0.0, theme.bevelDepth).toDouble();
+      final highlightDepth = theme.borderWidth;
+      final metrics = _metrics(theme.borderWidth);
       final from = _leftAnimation.value;
-      final to = widget.value ? _maxLeft : 0.0;
+      final to = widget.value ? metrics.maxLeft : 0.0;
       final direction = widget.value ? 1.0 : -1.0;
       final overshoot = to + highlightDepth * direction;
       _leftAnimation = TweenSequence<double>([
@@ -108,6 +125,26 @@ class _OreSwitchState extends State<OreSwitch>
     super.dispose();
   }
 
+  void _syncStaticPosition() {
+    final theme = OreTheme.of(context);
+    final metrics = _metrics(theme.borderWidth);
+    final target = widget.value ? metrics.maxLeft : 0.0;
+    _leftAnimation = AlwaysStoppedAnimation(target);
+  }
+
+  _SwitchMetrics _metrics(double unit) {
+    final trackHeight = unit * OreTokens.switchTrackUnits;
+    final trackWidth = trackHeight * OreTokens.switchAspect;
+    final knobSize = unit * OreTokens.switchThumbUnits;
+    final iconSize = unit * OreTokens.switchIconUnits;
+    return _SwitchMetrics(
+      trackWidth: trackWidth,
+      trackHeight: trackHeight,
+      knobSize: knobSize,
+      iconSize: iconSize,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = OreTheme.of(context);
@@ -116,28 +153,29 @@ class _OreSwitchState extends State<OreSwitch>
     final isHovered = _hovered && _enabled;
     final isPressed = _pressed && _enabled;
     final isInteracting = isHovered || isPressed;
-    final highlightDepth =
-        (theme.bevelDepth - 1).clamp(0.0, theme.bevelDepth).toDouble();
-    final shadowDepth = theme.bevelDepth;
+    final depthUnit = theme.borderWidth;
+    final metrics = _metrics(depthUnit);
+    final highlightDepth = depthUnit;
+    final shadowDepth = depthUnit * 2;
     final trackShadowDepth = 0.0;
-    final knobTop = _trackHeight - _knobSize;
+    final knobTop = metrics.trackHeight - metrics.knobSize;
 
     final borderColor = _enabled ? colors.border : colors.borderLight;
     final trackColor = _enabled
         ? (isOn ? colors.accent : colors.borderLight)
         : colors.surface;
-    final iconBoxWidth = _trackWidth / 2;
+    final iconBoxWidth = metrics.iconBoxWidth;
 
     final track = SizedBox(
-      width: _trackWidth,
-      height: _trackHeight,
+      width: metrics.trackWidth,
+      height: metrics.trackHeight,
       child: OreSurface(
         color: trackColor,
         borderColor: borderColor,
         highlightColor: colors.highlight,
         shadowColor: colors.shadow,
         borderWidth: theme.borderWidth,
-        depth: theme.bevelDepth,
+        depth: shadowDepth,
         highlightDepth: highlightDepth,
         shadowDepth: trackShadowDepth,
         swapHighlightOnPressed: false,
@@ -152,20 +190,17 @@ class _OreSwitchState extends State<OreSwitch>
                 left: 0,
                 top: 0,
                 width: iconBoxWidth,
-                height: _trackHeight,
+                height: metrics.trackHeight,
                 child: Center(
                   child: ClipRect(
-                    child: Transform.scale(
-                      scale: _iconVisualScale,
-                      child: Image.asset(
-                        'assets/I.png',
-                        package: 'oreui_flutter',
-                        width: _iconBaseSize,
-                        height: _iconBaseSize,
-                        filterQuality: FilterQuality.none,
-                        color: const Color(0xFFFFFFFF),
-                        colorBlendMode: BlendMode.srcIn,
-                      ),
+                    child: Image.asset(
+                      'assets/I.png',
+                      package: 'oreui_flutter',
+                      width: metrics.iconSize,
+                      height: metrics.iconSize,
+                      filterQuality: FilterQuality.none,
+                      color: const Color(0xFFFFFFFF),
+                      colorBlendMode: BlendMode.srcIn,
                     ),
                   ),
                 ),
@@ -175,20 +210,17 @@ class _OreSwitchState extends State<OreSwitch>
                 right: 0,
                 top: 0,
                 width: iconBoxWidth,
-                height: _trackHeight,
+                height: metrics.trackHeight,
                 child: Center(
                   child: ClipRect(
-                    child: Transform.scale(
-                      scale: _iconVisualScale,
-                      child: Image.asset(
-                        'assets/O.png',
-                        package: 'oreui_flutter',
-                        width: _iconBaseSize,
-                        height: _iconBaseSize,
-                        filterQuality: FilterQuality.none,
-                        color: borderColor,
-                        colorBlendMode: BlendMode.srcIn,
-                      ),
+                    child: Image.asset(
+                      'assets/O.png',
+                      package: 'oreui_flutter',
+                      width: metrics.iconSize,
+                      height: metrics.iconSize,
+                      filterQuality: FilterQuality.none,
+                      color: borderColor,
+                      colorBlendMode: BlendMode.srcIn,
                     ),
                   ),
                 ),
@@ -202,15 +234,15 @@ class _OreSwitchState extends State<OreSwitch>
         isInteracting ? colors.surfaceHover : colors.surface;
 
     final slider = SizedBox(
-      width: _knobSize,
-      height: _knobSize,
+      width: metrics.knobSize,
+      height: metrics.knobSize,
       child: OreSurface(
         color: sliderColor,
         borderColor: _enabled ? colors.border : colors.borderLight,
         highlightColor: colors.highlight,
         shadowColor: colors.shadow,
         borderWidth: theme.borderWidth,
-        depth: theme.bevelDepth,
+        depth: shadowDepth,
         highlightDepth: highlightDepth,
         shadowDepth: shadowDepth,
         swapHighlightOnPressed: false,
@@ -223,14 +255,14 @@ class _OreSwitchState extends State<OreSwitch>
       cursor: _enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
       onEnter: (_) => _setHovered(true),
       onExit: (_) => _setHovered(false),
-      child: GestureDetector(
+        child: GestureDetector(
         onTap: _enabled ? () => widget.onChanged?.call(!isOn) : null,
         onTapDown: _enabled ? (_) => _setPressed(true) : null,
         onTapUp: _enabled ? (_) => _setPressed(false) : null,
         onTapCancel: _enabled ? () => _setPressed(false) : null,
         behavior: HitTestBehavior.opaque,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2),
+          padding: EdgeInsets.symmetric(horizontal: depthUnit),
           child: Stack(
             clipBehavior: Clip.none,
             alignment: Alignment.centerLeft,

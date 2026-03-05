@@ -22,9 +22,9 @@ class OreCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = OreTheme.of(context);
     final colors = theme.colors;
-    final highlightDepth =
-        (theme.bevelDepth - 1).clamp(0.0, theme.bevelDepth).toDouble();
-    final shadowDepth = theme.bevelDepth;
+    final depthUnit = theme.borderWidth;
+    final highlightDepth = depthUnit;
+    final shadowDepth = depthUnit * 2;
 
     return Container(
       margin: margin,
@@ -34,7 +34,7 @@ class OreCard extends StatelessWidget {
         highlightColor: colors.highlight,
         shadowColor: colors.shadow,
         borderWidth: theme.borderWidth,
-        depth: theme.bevelDepth,
+        depth: shadowDepth,
         highlightDepth: highlightDepth,
         shadowDepth: shadowDepth,
         padding: padding ?? const EdgeInsets.all(OreTokens.gapMd),

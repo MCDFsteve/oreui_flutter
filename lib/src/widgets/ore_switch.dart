@@ -23,9 +23,8 @@ class _OreSwitchState extends State<OreSwitch>
   static const double _trackHeight = 24.0;
   static const double _knobSize = 28.0;
   static const double _maxLeft = _trackWidth - _knobSize;
-  static const double _iconSize = 16.0;
-  static const double _iconInsetLeft = 6.0;
-  static const double _iconInsetRight = 6.0;
+  static const double _iconBaseSize = 16.0;
+  static const double _iconVisualScale = 2.0;
   static const int _firstUpMs = 60;
   static const int _firstDownMs = 60;
   static const int _midPauseMs = 30;
@@ -126,7 +125,7 @@ class _OreSwitchState extends State<OreSwitch>
     final trackColor = _enabled
         ? (isOn ? colors.accent : colors.borderLight)
         : colors.surface;
-    final iconTop = (_trackHeight - _iconSize) / 2;
+    final iconBoxWidth = _trackWidth / 2;
 
     final track = SizedBox(
       width: _trackWidth,
@@ -147,32 +146,46 @@ class _OreSwitchState extends State<OreSwitch>
           ),
           if (isOn)
             Positioned(
-              left: _iconInsetLeft,
-              top: iconTop,
-              width: _iconSize,
-              height: _iconSize,
+              left: 0,
+              top: 0,
+              width: iconBoxWidth,
+              height: _trackHeight,
               child: Center(
-                child: Text(
-                  'I',
-                  style: theme.typography.caption.copyWith(
-                    color: const Color(0xFFFFFFFF),
-                    height: 1,
+                child: ClipRect(
+                  child: Transform.scale(
+                    scale: _iconVisualScale,
+                    child: Image.asset(
+                      'assets/I.png',
+                      package: 'oreui_flutter',
+                      width: _iconBaseSize,
+                      height: _iconBaseSize,
+                      filterQuality: FilterQuality.none,
+                      color: const Color(0xFFFFFFFF),
+                      colorBlendMode: BlendMode.srcIn,
+                    ),
                   ),
                 ),
               ),
             )
           else
             Positioned(
-              right: _iconInsetRight,
-              top: iconTop,
-              width: _iconSize,
-              height: _iconSize,
+              right: 0,
+              top: 0,
+              width: iconBoxWidth,
+              height: _trackHeight,
               child: Center(
-                child: Text(
-                  'O',
-                  style: theme.typography.caption.copyWith(
-                    color: borderColor,
-                    height: 1,
+                child: ClipRect(
+                  child: Transform.scale(
+                    scale: _iconVisualScale,
+                    child: Image.asset(
+                      'assets/O.png',
+                      package: 'oreui_flutter',
+                      width: _iconBaseSize,
+                      height: _iconBaseSize,
+                      filterQuality: FilterQuality.none,
+                      color: borderColor,
+                      colorBlendMode: BlendMode.srcIn,
+                    ),
                   ),
                 ),
               ),

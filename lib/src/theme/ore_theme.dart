@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 
 import 'ore_tokens.dart';
 
+const _oreFontFamily = 'Minecraft Seven v4';
+const _oreFontPackage = 'oreui_flutter';
+
 @immutable
 class OreColors {
   final Color background;
@@ -198,25 +201,29 @@ class OreTypography {
   factory OreTypography.ore(OreColors colors) {
     return OreTypography(
       title: TextStyle(
-        fontFamily: 'Minecraft Ten',
+        fontFamily: _oreFontFamily,
+        package: _oreFontPackage,
         fontSize: 30,
         height: 1.1,
         color: colors.textPrimary,
       ),
       body: TextStyle(
-        fontFamily: 'NotoSans Bold',
+        fontFamily: _oreFontFamily,
+        package: _oreFontPackage,
         fontSize: 14,
         height: 1.4,
         color: colors.textPrimary,
       ),
       label: TextStyle(
-        fontFamily: 'NotoSans Bold',
+        fontFamily: _oreFontFamily,
+        package: _oreFontPackage,
         fontSize: 14,
         height: 1.2,
         color: colors.textPrimary,
       ),
       caption: TextStyle(
-        fontFamily: 'NotoSans Bold',
+        fontFamily: _oreFontFamily,
+        package: _oreFontPackage,
         fontSize: 12,
         height: 1.2,
         color: colors.textMuted,

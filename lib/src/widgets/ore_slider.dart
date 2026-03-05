@@ -24,17 +24,22 @@ class OreSlider extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = OreTheme.of(context);
     final colors = theme.colors;
+    final sliderTheme = SliderTheme.of(context);
+    final valueIndicatorTextStyle =
+        (sliderTheme.valueIndicatorTextStyle ?? theme.typography.caption)
+            .copyWith(fontFamily: theme.typography.body.fontFamily);
     final highlightDepth =
         (theme.bevelDepth - 1).clamp(0.0, theme.bevelDepth).toDouble();
     final shadowDepth = theme.bevelDepth;
 
     return SliderTheme(
-      data: SliderTheme.of(context).copyWith(
+      data: sliderTheme.copyWith(
         trackHeight: 8,
         activeTrackColor: colors.accent,
         inactiveTrackColor: colors.borderLight,
         thumbColor: colors.surface,
         overlayColor: Colors.transparent,
+        valueIndicatorTextStyle: valueIndicatorTextStyle,
         thumbShape: OreSliderThumbShape(
           colors: colors,
           borderWidth: theme.borderWidth,

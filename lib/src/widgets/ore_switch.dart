@@ -18,11 +18,100 @@ class OreSwitch extends StatefulWidget {
   State<OreSwitch> createState() => _OreSwitchState();
 }
 
-class _OreSwitchState extends State<OreSwitch> {
+class _OreSwitchState extends State<OreSwitch>
+    with SingleTickerProviderStateMixin {
+  static const double _trackWidth = 58.0;
+  static const double _trackHeight = 24.0;
+  static const double _knobSize = 28.0;
+  static const double _maxLeft = _trackWidth - _knobSize;
+
   bool _hovered = false;
   bool _pressed = false;
+  late final AnimationController _wiggleController;
+  late Animation<double> _leftAnimation;
 
   bool get _enabled => widget.onChanged != null;
+
+  @override
+  void initState() {
+    super.initState();
+    const firstUpMs = 80;
+    const firstDownMs = 80;
+    const midPauseMs = 40;
+    const secondUpMs = 80;
+    const secondDownMs = 80;
+    const endPauseMs = 40;
+    const totalMs =
+        firstUpMs +
+        firstDownMs +
+        midPauseMs +
+        secondUpMs +
+        secondDownMs +
+        endPauseMs;
+    _wiggleController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: totalMs),
+    );
+    _leftAnimation =
+        AlwaysStoppedAnimation(widget.value ? _maxLeft : 0.0);
+  }
+
+  @override
+  void didUpdateWidget(covariant OreSwitch oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) {
+      final theme = OreTheme.of(context);
+      final highlightDepth =
+          (theme.bevelDepth - 1).clamp(0.0, theme.bevelDepth).toDouble();
+      final from = _leftAnimation.value;
+      final to = widget.value ? _maxLeft : 0.0;
+      final direction = widget.value ? 1.0 : -1.0;
+      final overshoot = to + highlightDepth * direction;
+      const firstUpMs = 80.0;
+      const firstDownMs = 80.0;
+      const midPauseMs = 40.0;
+      const secondUpMs = 80.0;
+      const secondDownMs = 80.0;
+      const endPauseMs = 40.0;
+      _leftAnimation = TweenSequence<double>([
+        TweenSequenceItem(
+          tween: Tween(begin: from, end: overshoot)
+              .chain(CurveTween(curve: Curves.easeOut)),
+          weight: firstUpMs,
+        ),
+        TweenSequenceItem(
+          tween: Tween(begin: overshoot, end: to)
+              .chain(CurveTween(curve: Curves.easeIn)),
+          weight: firstDownMs,
+        ),
+        TweenSequenceItem(
+          tween: ConstantTween(to),
+          weight: midPauseMs,
+        ),
+        TweenSequenceItem(
+          tween: Tween(begin: to, end: overshoot)
+              .chain(CurveTween(curve: Curves.easeOut)),
+          weight: secondUpMs,
+        ),
+        TweenSequenceItem(
+          tween: Tween(begin: overshoot, end: to)
+              .chain(CurveTween(curve: Curves.easeIn)),
+          weight: secondDownMs,
+        ),
+        TweenSequenceItem(
+          tween: ConstantTween(to),
+          weight: endPauseMs,
+        ),
+      ]).animate(_wiggleController);
+      _wiggleController.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _wiggleController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,28 +120,21 @@ class _OreSwitchState extends State<OreSwitch> {
     final isOn = widget.value;
     final isHovered = _hovered && _enabled;
     final isPressed = _pressed && _enabled;
+    final isInteracting = isHovered || isPressed;
     final highlightDepth =
         (theme.bevelDepth - 1).clamp(0.0, theme.bevelDepth).toDouble();
     final shadowDepth = theme.bevelDepth;
+    final knobTop = _trackHeight - _knobSize;
 
     final trackColor = _enabled
-        ? LinearGradient(
-            colors: [
-              colors.accent,
-              colors.accent,
-              colors.borderLight,
-              colors.borderLight,
-            ],
-            stops: const [0, 0.5, 0.5, 1],
-          )
-        : null;
+        ? (isOn ? colors.accent : colors.borderLight)
+        : colors.surface;
 
     final track = Container(
-      width: 58,
-      height: 24,
+      width: _trackWidth,
+      height: _trackHeight,
       decoration: BoxDecoration(
-        gradient: trackColor,
-        color: _enabled ? null : colors.surface,
+        color: trackColor,
         border: Border.all(
           color: _enabled ? colors.border : colors.borderLight,
           width: theme.borderWidth,
@@ -60,28 +142,27 @@ class _OreSwitchState extends State<OreSwitch> {
       ),
     );
 
-    final sliderColor = isHovered || isPressed
-        ? colors.surfaceHover
-        : colors.surface;
+    final sliderColor =
+        isInteracting ? colors.surfaceHover : colors.surface;
 
     final slider = SizedBox(
-      width: 28,
-      height: 28,
+      width: _knobSize,
+      height: _knobSize,
       child: OreSurface(
         color: sliderColor,
         borderColor: _enabled ? colors.border : colors.borderLight,
         highlightColor: colors.highlight,
         shadowColor: colors.shadow,
         borderWidth: theme.borderWidth,
-        depth: isPressed ? 0 : theme.bevelDepth,
+        depth: theme.bevelDepth,
         highlightDepth: highlightDepth,
         shadowDepth: shadowDepth,
-        pressed: isPressed,
+        swapHighlightOnPressed: false,
+        pressed: false,
         padding: EdgeInsets.zero,
         child: const SizedBox.shrink(),
       ),
     );
-
     return MouseRegion(
       cursor: _enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
       onEnter: (_) => _setHovered(true),
@@ -92,25 +173,25 @@ class _OreSwitchState extends State<OreSwitch> {
         onTapUp: _enabled ? (_) => _setPressed(false) : null,
         onTapCancel: _enabled ? () => _setPressed(false) : null,
         behavior: HitTestBehavior.opaque,
-          child: AnimatedContainer(
-            duration: OreTokens.fast,
-            curve: Curves.easeOut,
-            padding: const EdgeInsets.symmetric(horizontal: 2),
-            child: Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.centerLeft,
-              children: [
-                track,
-                AnimatedPositioned(
-                  duration: OreTokens.fast,
-                  curve: Curves.easeOut,
-                  left: isOn ? 28 : 0,
-                  top: -2,
-                  child: slider,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.centerLeft,
+            children: [
+              track,
+              AnimatedBuilder(
+                animation: _leftAnimation,
+                child: slider,
+                builder: (context, child) => Positioned(
+                  left: _leftAnimation.value,
+                  top: knobTop,
+                  child: child!,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ),
       ),
     );
   }

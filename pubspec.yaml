@@ -58,6 +58,9 @@ flutter:
     - family: Minecraft Ten
       fonts:
         - asset: assets/fonts/Minecraft-Ten.otf
+    - family: Minecraft Seven v4
+      fonts:
+        - asset: assets/fonts/Minecraft-Seven-v4.ttf
     - family: Minecraft Seven
       fonts:
         - asset: assets/fonts/Minecraft-Seven.otf

@@ -47,58 +47,67 @@ class OreTextField extends StatelessWidget {
     final theme = OreTheme.of(context);
     final colors = theme.colors;
     final depthUnit = theme.borderWidth;
-    final highlightDepth = depthUnit;
+    final highlightDepth = 0.0;
     final shadowDepth = depthUnit * 2;
 
     final surfaceColor = enabled ? colors.surfaceDark : colors.surface;
     final borderColor = enabled ? colors.border : colors.borderLight;
     final textColor = enabled ? colors.textInverse : colors.textDisabled;
 
+    final isSingleLine =
+        (maxLines ?? 1) == 1 && (minLines ?? 1) == 1;
+
+    Widget field = OreSurface(
+      color: surfaceColor,
+      borderColor: borderColor,
+      highlightColor: Colors.transparent,
+      shadowColor: enabled ? colors.shadowStrong : colors.borderLight,
+      borderWidth: theme.borderWidth,
+      depth: shadowDepth,
+      highlightDepth: highlightDepth,
+      shadowDepth: shadowDepth,
+      padding: EdgeInsets.zero,
+      child: TextField(
+        controller: controller,
+        focusNode: focusNode,
+        enabled: enabled,
+        obscureText: obscureText,
+        maxLines: maxLines,
+        minLines: minLines,
+        onChanged: onChanged,
+        keyboardType: keyboardType,
+        textInputAction: textInputAction,
+        textCapitalization: textCapitalization,
+        onEditingComplete: onEditingComplete,
+        onSubmitted: onSubmitted,
+        style: theme.typography.body.copyWith(color: textColor),
+        cursorColor: colors.success,
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          isDense: true,
+          hintText: hintText,
+          hintStyle: theme.typography.body.copyWith(color: colors.textMuted),
+          contentPadding: contentPadding ??
+              const EdgeInsets.symmetric(
+                horizontal: OreTokens.gapMd,
+                vertical: OreTokens.gapSm,
+              ),
+          prefixIcon: prefix,
+          suffixIcon: suffix,
+        ),
+      ),
+    );
+
+    if (isSingleLine) {
+      field = SizedBox(height: OreTokens.controlHeightMd, child: field);
+    }
+
     return TextSelectionTheme(
       data: TextSelectionThemeData(
         cursorColor: colors.success,
         selectionColor: colors.selection,
       ),
-      child: OreSurface(
-        color: surfaceColor,
-        borderColor: borderColor,
-        highlightColor: colors.shadowStrong,
-        shadowColor: enabled ? colors.shadowStrong : colors.borderLight,
-        borderWidth: theme.borderWidth,
-        depth: shadowDepth,
-        highlightDepth: highlightDepth,
-        shadowDepth: shadowDepth,
-        padding: EdgeInsets.zero,
-        child: TextField(
-          controller: controller,
-          focusNode: focusNode,
-          enabled: enabled,
-          obscureText: obscureText,
-          maxLines: maxLines,
-          minLines: minLines,
-          onChanged: onChanged,
-          keyboardType: keyboardType,
-          textInputAction: textInputAction,
-          textCapitalization: textCapitalization,
-          onEditingComplete: onEditingComplete,
-          onSubmitted: onSubmitted,
-          style: theme.typography.body.copyWith(color: textColor),
-          cursorColor: colors.success,
-          decoration: InputDecoration(
-            border: InputBorder.none,
-            isDense: true,
-            hintText: hintText,
-            hintStyle: theme.typography.body.copyWith(color: colors.textMuted),
-            contentPadding: contentPadding ??
-                const EdgeInsets.symmetric(
-                  horizontal: OreTokens.gapMd,
-                  vertical: OreTokens.gapSm,
-                ),
-            prefixIcon: prefix,
-            suffixIcon: suffix,
-          ),
-        ),
-      ),
+      child: field,
     );
   }
 }

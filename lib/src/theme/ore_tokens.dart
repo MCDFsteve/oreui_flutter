@@ -43,6 +43,7 @@ class OreTokens {
   static const double buttonPadMdVUnits = 3;
   static const double buttonPadLgHUnits = 10;
   static const double buttonPadLgVUnits = 4;
+  static const double inputHintOffsetUnits = 1;
 
   static const Color coloredHighlight = Color(0x33FFFFFF);
   static const Color coloredHighlightStrong = Color(0x66FFFFFF);

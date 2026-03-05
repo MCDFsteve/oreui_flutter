@@ -76,6 +76,20 @@ class OreTextField extends StatelessWidget {
                 horizontal: OreTokens.gapMd,
                 vertical: OreTokens.gapSm,
               ));
+    final hintStyle =
+        theme.typography.body.copyWith(color: colors.textMuted);
+    final hintOffset = depthUnit * OreTokens.inputHintOffsetUnits;
+    final hintWidget = isSingleLine && hintText != null
+        ? Transform.translate(
+            offset: Offset(0, hintOffset),
+            child: Text(
+              hintText!,
+              style: hintStyle,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          )
+        : null;
 
     final textField = TextField(
       controller: controller,
@@ -96,8 +110,9 @@ class OreTextField extends StatelessWidget {
       decoration: InputDecoration(
         border: InputBorder.none,
         isDense: true,
-        hintText: hintText,
-        hintStyle: theme.typography.body.copyWith(color: colors.textMuted),
+        hintText: hintWidget == null ? hintText : null,
+        hintStyle: hintStyle,
+        hint: hintWidget,
         contentPadding: resolvedPadding,
         prefixIcon: prefix,
         suffixIcon: suffix,

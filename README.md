@@ -4,6 +4,7 @@
 
 A pixel/voxel‑inspired Flutter UI kit that brings the Ore UI aesthetic to your apps (unofficial, not affiliated).
 
+![Demo](assets/sh1.png)
 ![Demo](assets/sh2.png)
 
 **Features**

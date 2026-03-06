@@ -7,7 +7,14 @@ OreColors resolveControlColors(BuildContext context, OreColors baseColors) {
   final inverted = brightness == Brightness.dark
       ? OreColors.light()
       : OreColors.dark();
-  return inverted.copyWith(
+  final adjusted = brightness == Brightness.dark
+      ? inverted.copyWith(
+          surface: const Color(0xFFD0D1D4),
+          surfaceHover: const Color(0xFFB1B2B5),
+          surfacePressed: const Color(0xFFB1B2B5),
+        )
+      : inverted;
+  return adjusted.copyWith(
     accent: baseColors.accent,
     accentHover: baseColors.accentHover,
     accentPressed: baseColors.accentPressed,

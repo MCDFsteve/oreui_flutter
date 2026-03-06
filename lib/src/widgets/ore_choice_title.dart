@@ -20,7 +20,13 @@ class OreChoiceTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = OreTheme.of(context);
-    final resolvedPadding = padding ?? const EdgeInsets.all(OreTokens.gapXs);
+    final resolvedPadding = padding ??
+        const EdgeInsets.only(
+          left: OreTokens.gapXs,
+          right: OreTokens.gapXs,
+          top: 0,
+          bottom: 0,
+        );
     return DefaultTextStyle.merge(
       style: style ?? theme.typography.choiceTitle,
       child: Align(

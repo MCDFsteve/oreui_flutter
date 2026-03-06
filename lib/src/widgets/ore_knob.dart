@@ -125,7 +125,7 @@ class OreKnobPainter extends CustomPainter {
     final shadow = shouldSwap ? highlightColor : shadowColor;
     final cornerHighlight = highlight.alpha == 0
         ? highlight
-        : Color.lerp(highlight, const Color(0xFFFFFFFF), 0.2)!;
+        : Color.lerp(highlight, const Color(0xFFFFFFFF), 0.08)!;
     final resolvedHighlightDepth =
         (highlightDepth ?? depth).clamp(0.0, 8.0).toDouble();
     final resolvedShadowDepth =

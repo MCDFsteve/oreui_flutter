@@ -12,9 +12,7 @@ class OreHighlight {
     required bool hovered,
   }) {
     if (colored) {
-      return hovered
-          ? OreTokens.coloredHighlightStrong
-          : OreTokens.coloredHighlight;
+      return mutedColored();
     }
     return muted(colors: colors);
   }
@@ -24,6 +22,13 @@ class OreHighlight {
     double factor = 0.4,
   }) {
     final base = colors.highlight;
+    if (base.alpha == 0) return base;
+    final nextOpacity = (base.opacity * factor).clamp(0.0, 1.0);
+    return base.withOpacity(nextOpacity);
+  }
+
+  static Color mutedColored({double factor = 0.4}) {
+    final base = OreTokens.coloredHighlight;
     if (base.alpha == 0) return base;
     final nextOpacity = (base.opacity * factor).clamp(0.0, 1.0);
     return base.withOpacity(nextOpacity);

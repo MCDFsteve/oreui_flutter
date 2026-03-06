@@ -48,7 +48,7 @@ class OreSurface extends StatelessWidget {
     final shadow = shouldSwap ? highlightColor : shadowColor;
     final cornerHighlight = highlight.alpha == 0
         ? highlight
-        : Color.lerp(highlight, const Color(0xFFFFFFFF), 0.2)!;
+        : Color.lerp(highlight, const Color(0xFFFFFFFF), 0.08)!;
     final resolvedHighlightDepth =
         math.max(0.0, highlightDepth ?? depth);
     final resolvedShadowDepth =

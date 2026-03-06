@@ -5,7 +5,10 @@ import '../theme/ore_highlight.dart';
 import '../theme/ore_theme.dart';
 import '../theme/ore_tokens.dart';
 import 'ore_button.dart';
+import 'ore_scrollbar.dart';
 import 'ore_surface.dart';
+
+const double _menuInnerBorderWidth = 1.0;
 
 @immutable
 class OreDropdownItem<T> {
@@ -42,10 +45,13 @@ class OreDropdownButton<T> extends StatefulWidget {
   State<OreDropdownButton<T>> createState() => _OreDropdownButtonState<T>();
 }
 
+enum _MenuPlacement { below, above }
+
 class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
   bool _hovered = false;
   bool _pressed = false;
   bool _menuOpen = false;
+  _MenuPlacement _menuPlacement = _MenuPlacement.below;
 
   bool get _enabled => widget.onChanged != null && widget.items.isNotEmpty;
 
@@ -98,21 +104,39 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
       child: content,
     );
 
-    final surface = OreSurface(
-      color: config.background,
-      borderColor: config.borderColor,
-      highlightColor: config.highlightColor,
-      shadowColor: config.shadowColor,
-      borderWidth: theme.borderWidth,
-      depth: visualDepth,
-      highlightDepth: highlightDepth,
-      shadowDepth: shadowDepth,
-      swapHighlightOnPressed: false,
-      alignment: Alignment.centerLeft,
-      padding: padding,
-      pressed: isPressed,
-      child: content,
-    );
+    final hideBlackTop =
+        _menuOpen && _menuPlacement == _MenuPlacement.above;
+    final hideBlackBottom =
+        _menuOpen && _menuPlacement == _MenuPlacement.below;
+    final surface = _menuOpen
+        ? _MenuSurface(
+            color: config.background,
+            borderColor: config.borderColor,
+            innerBorderColor: themeColors.textInverse,
+            borderWidth: theme.borderWidth,
+            padding: padding,
+            alignment: Alignment.centerLeft,
+            showBlackTop: !hideBlackTop,
+            showBlackBottom: !hideBlackBottom,
+            whiteInsetTop: 0.0,
+            whiteInsetBottom: 0.0,
+            child: content,
+          )
+        : OreSurface(
+            color: config.background,
+            borderColor: config.borderColor,
+            highlightColor: config.highlightColor,
+            shadowColor: config.shadowColor,
+            borderWidth: theme.borderWidth,
+            depth: visualDepth,
+            highlightDepth: highlightDepth,
+            shadowDepth: shadowDepth,
+            swapHighlightOnPressed: false,
+            alignment: Alignment.centerLeft,
+            padding: padding,
+            pressed: isPressed,
+            child: content,
+          );
 
     final pressedCut = isPressed ? visualDepth : 0.0;
     final pressedHeight = (height - pressedCut).clamp(0.0, height);
@@ -219,14 +243,26 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
       menuWidth,
       overlaySize.width,
     );
+    final belowFits =
+        buttonRect.bottom + menuHeight - overlap <= overlaySize.height;
+    final aboveFits =
+        buttonRect.top - menuHeight + overlap >= 0;
     final top = _resolveVerticalPosition(
       buttonRect,
       menuHeight,
       overlaySize.height,
       overlap,
     );
+    final maxHeight =
+        (overlaySize.height - top).clamp(0.0, overlaySize.height);
+    final placement = belowFits || !aboveFits
+        ? _MenuPlacement.below
+        : _MenuPlacement.above;
 
-    setState(() => _menuOpen = true);
+    setState(() {
+      _menuOpen = true;
+      _menuPlacement = placement;
+    });
     try {
       final selected = await showGeneralDialog<T>(
         context: context,
@@ -254,11 +290,13 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
                     width: menuWidth,
                     itemHeight: itemHeight,
                     overlap: overlap,
+                    maxHeight: maxHeight,
                     padding: _padding(widget.size, theme.borderWidth),
                     items: widget.items,
                     colors: surfaceColors,
                     textStyle:
                         theme.typography.body.copyWith(color: surfaceColors.textPrimary),
+                    placement: placement,
                     onSelected: (value) =>
                         Navigator.of(context).pop(value),
                   ),
@@ -441,58 +479,107 @@ class _DropdownColors {
   final Color textColor;
 }
 
-class _DropdownMenuPanel<T> extends StatelessWidget {
+class _DropdownMenuPanel<T> extends StatefulWidget {
   const _DropdownMenuPanel({
     required this.width,
     required this.itemHeight,
     required this.overlap,
+    required this.maxHeight,
     required this.padding,
     required this.items,
     required this.colors,
     required this.textStyle,
+    required this.placement,
     required this.onSelected,
   });
 
   final double width;
   final double itemHeight;
   final double overlap;
+  final double maxHeight;
   final EdgeInsetsGeometry padding;
   final List<OreDropdownItem<T>> items;
   final OreColors colors;
   final TextStyle textStyle;
+  final _MenuPlacement placement;
   final ValueChanged<T> onSelected;
 
   @override
-  Widget build(BuildContext context) {
-    final totalHeight = items.isEmpty
-        ? 0.0
-        : itemHeight * items.length - overlap * (items.length - 1);
-    final itemBackground =
-        Color.lerp(colors.background, colors.surface, 0.15) ??
-            colors.background;
+  State<_DropdownMenuPanel<T>> createState() => _DropdownMenuPanelState<T>();
+}
 
-    return SizedBox(
-      width: width,
+class _DropdownMenuPanelState<T> extends State<_DropdownMenuPanel<T>> {
+  late final ScrollController _controller = ScrollController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final totalHeight = widget.items.isEmpty
+        ? 0.0
+        : widget.itemHeight * widget.items.length -
+            widget.overlap * (widget.items.length - 1);
+    final viewportHeight =
+        totalHeight.clamp(0.0, widget.maxHeight);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final itemBackground = Color.lerp(
+          widget.colors.background,
+          isDark ? Colors.white : Colors.black,
+          isDark ? 0.22 : 0.16,
+        ) ??
+        widget.colors.background;
+    final borderWidth = OreTheme.of(context).borderWidth;
+    final content = SizedBox(
       height: totalHeight,
       child: Stack(
         children: [
-          for (var i = 0; i < items.length; i++)
+          for (var i = 0; i < widget.items.length; i++)
             Positioned(
               left: 0,
               right: 0,
-              top: i * (itemHeight - overlap),
-              height: itemHeight,
+              top: i * (widget.itemHeight - widget.overlap),
+              height: widget.itemHeight,
               child: _DropdownMenuItem<T>(
-                item: items[i],
-                textStyle: textStyle,
+                item: widget.items[i],
+                textStyle: widget.textStyle,
                 background: itemBackground,
-                borderColor: colors.border,
-                borderWidth: OreTheme.of(context).borderWidth,
-                padding: padding,
-                onSelected: onSelected,
+                borderColor: widget.colors.border,
+                borderWidth: borderWidth,
+                padding: widget.padding,
+                showBlackTop: widget.placement == _MenuPlacement.above
+                    ? i == 0
+                    : false,
+                showBlackBottom: widget.placement == _MenuPlacement.above
+                    ? false
+                    : i == widget.items.length - 1,
+                whiteInsetTop: widget.placement == _MenuPlacement.below &&
+                        i == 0
+                    ? _menuInnerBorderWidth
+                        : 0.0,
+                whiteInsetBottom: widget.placement == _MenuPlacement.above &&
+                        i == widget.items.length - 1
+                    ? _menuInnerBorderWidth
+                    : 0.0,
+                onSelected: widget.onSelected,
               ),
             ),
         ],
+      ),
+    );
+
+    return SizedBox(
+      width: widget.width,
+      height: viewportHeight,
+      child: OreScrollbar(
+        controller: _controller,
+        child: SingleChildScrollView(
+          controller: _controller,
+          child: content,
+        ),
       ),
     );
   }
@@ -506,6 +593,10 @@ class _DropdownMenuItem<T> extends StatelessWidget {
     required this.borderColor,
     required this.borderWidth,
     required this.padding,
+    required this.showBlackTop,
+    required this.showBlackBottom,
+    required this.whiteInsetTop,
+    required this.whiteInsetBottom,
     required this.onSelected,
   });
 
@@ -515,6 +606,10 @@ class _DropdownMenuItem<T> extends StatelessWidget {
   final Color borderColor;
   final double borderWidth;
   final EdgeInsetsGeometry padding;
+  final bool showBlackTop;
+  final bool showBlackBottom;
+  final double whiteInsetTop;
+  final double whiteInsetBottom;
   final ValueChanged<T> onSelected;
 
   @override
@@ -526,20 +621,140 @@ class _DropdownMenuItem<T> extends StatelessWidget {
         onTap: () => onSelected(item.value),
         child: DefaultTextStyle.merge(
           style: textStyle,
-          child: OreSurface(
+          child: _MenuSurface(
             color: background,
             borderColor: borderColor,
-            highlightColor: Colors.transparent,
-            shadowColor: Colors.transparent,
+            innerBorderColor: Colors.white,
             borderWidth: borderWidth,
-            depth: 0,
-            highlightDepth: 0,
-            shadowDepth: 0,
-            alignment: Alignment.centerLeft,
             padding: padding,
+            alignment: Alignment.centerLeft,
+            showBlackTop: showBlackTop,
+            showBlackBottom: showBlackBottom,
+            whiteInsetTop: whiteInsetTop,
+            whiteInsetBottom: whiteInsetBottom,
             child: item.child,
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _MenuSurface extends StatelessWidget {
+  const _MenuSurface({
+    required this.child,
+    required this.color,
+    required this.borderColor,
+    required this.innerBorderColor,
+    required this.borderWidth,
+    required this.padding,
+    this.alignment = Alignment.centerLeft,
+    this.showBlackTop = true,
+    this.showBlackLeft = true,
+    this.showBlackRight = true,
+    this.showBlackBottom = true,
+    this.whiteInsetTop = 0.0,
+    this.whiteInsetBottom = 0.0,
+  });
+
+  final Widget child;
+  final Color color;
+  final Color borderColor;
+  final Color innerBorderColor;
+  final double borderWidth;
+  final EdgeInsetsGeometry padding;
+  final AlignmentGeometry alignment;
+  final bool showBlackTop;
+  final bool showBlackLeft;
+  final bool showBlackRight;
+  final bool showBlackBottom;
+  final double whiteInsetTop;
+  final double whiteInsetBottom;
+
+  @override
+  Widget build(BuildContext context) {
+    final resolvedPadding =
+        padding.resolve(Directionality.of(context));
+    final innerWidth = _menuInnerBorderWidth;
+    final leftInset = showBlackLeft ? borderWidth : 0.0;
+    final rightInset = showBlackRight ? borderWidth : 0.0;
+    final topInset = showBlackTop ? borderWidth : 0.0;
+    final bottomInset = showBlackBottom ? borderWidth : 0.0;
+    final whiteTopInset = topInset + whiteInsetTop;
+    final whiteBottomInset = bottomInset + whiteInsetBottom;
+
+    return Container(
+      decoration: BoxDecoration(color: color),
+      child: Stack(
+        alignment: alignment,
+        children: [
+          if (borderWidth > 0) ...[
+            if (showBlackTop)
+              Positioned(
+                left: 0,
+                right: 0,
+                top: 0,
+                height: borderWidth,
+                child: Container(color: borderColor),
+              ),
+            if (showBlackLeft)
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: borderWidth,
+                child: Container(color: borderColor),
+              ),
+            if (showBlackBottom)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: borderWidth,
+                child: Container(color: borderColor),
+              ),
+            if (showBlackRight)
+              Positioned(
+                right: 0,
+                top: 0,
+                bottom: 0,
+                width: borderWidth,
+                child: Container(color: borderColor),
+              ),
+          ],
+          Positioned(
+            left: leftInset,
+            right: rightInset,
+            top: whiteTopInset,
+            height: innerWidth,
+            child: Container(color: innerBorderColor),
+          ),
+          Positioned(
+            left: leftInset,
+            top: whiteTopInset,
+            bottom: whiteBottomInset,
+            width: innerWidth,
+            child: Container(color: innerBorderColor),
+          ),
+          Positioned(
+            right: rightInset,
+            top: whiteTopInset,
+            bottom: whiteBottomInset,
+            width: innerWidth,
+            child: Container(color: innerBorderColor),
+          ),
+          Positioned(
+            left: leftInset,
+            right: rightInset,
+            bottom: whiteBottomInset,
+            height: innerWidth,
+            child: Container(color: innerBorderColor),
+          ),
+          Padding(
+            padding: resolvedPadding,
+            child: child,
+          ),
+        ],
       ),
     );
   }

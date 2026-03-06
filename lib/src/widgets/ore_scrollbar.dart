@@ -331,6 +331,7 @@ class _ScrollbarBar extends StatelessWidget {
                   ? (details) => _handleTrackTap(details, geometry)
                   : null,
               child: Stack(
+                clipBehavior: Clip.none,
                 children: [
                   track,
                   thumb,
@@ -346,7 +347,11 @@ class _ScrollbarBar extends StatelessWidget {
   Widget _buildTrack(BuildContext context) {
     final theme = OreTheme.of(context);
     final colors = theme.colors;
-    return Container(color: colors.surfaceDark);
+    final brightness = Theme.of(context).brightness;
+    final trackColor = brightness == Brightness.dark
+        ? Color.lerp(colors.surface, const Color(0xFFFFFFFF), 0.18)!
+        : Color.lerp(colors.surfaceDark, colors.shadowStrong, 0.9)!;
+    return Container(color: trackColor);
   }
 
   Widget _buildThumb(
@@ -356,23 +361,26 @@ class _ScrollbarBar extends StatelessWidget {
   ) {
     final theme = OreTheme.of(context);
     final colors = resolveControlColors(context, theme.colors);
-    final isHovered = hovered;
     final isPressed = pressed;
     final visualDepth = unit * 2;
     final highlightDepth = unit;
-    final shadowDepth = isPressed ? 0.0 : visualDepth;
-    final background = isHovered ? colors.surfaceHover : colors.surface;
+    final shadowDepth = visualDepth;
+    final brightness = Theme.of(context).brightness;
+    final shadowColor = brightness == Brightness.dark
+        ? Color.lerp(colors.shadowStrong, const Color(0xFF000000), 0.4)!
+        : Color.lerp(colors.shadow, colors.surface, 0.85)!;
+    final background = colors.surface;
     final highlightColor = OreHighlight.resolve(
       colors: colors,
       colored: false,
-      hovered: isHovered,
+      hovered: false,
     );
 
     final surface = OreSurface(
       color: background,
       borderColor: colors.border,
       highlightColor: highlightColor,
-      shadowColor: colors.shadow,
+      shadowColor: shadowColor,
       borderWidth: unit,
       depth: visualDepth,
       highlightDepth: highlightDepth,
@@ -387,6 +395,9 @@ class _ScrollbarBar extends StatelessWidget {
     final pressedExtent =
         (geometry.thumbLength - pressedCut).clamp(0.0, geometry.thumbLength);
 
+    const shadowStripHeight = 2.0;
+    const shadowStripColor = Color(0x80000000);
+
     Widget thumbBody = SizedBox(
       width: isVertical ? resolvedThumbThickness : geometry.thumbLength,
       height: isVertical ? geometry.thumbLength : resolvedThumbThickness,
@@ -395,7 +406,19 @@ class _ScrollbarBar extends StatelessWidget {
         child: SizedBox(
           width: isVertical ? resolvedThumbThickness : pressedExtent,
           height: isVertical ? pressedExtent : resolvedThumbThickness,
-          child: surface,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(child: surface),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: -shadowStripHeight,
+                height: shadowStripHeight,
+                child: Container(color: shadowStripColor),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -449,18 +472,6 @@ class _ScrollbarBar extends StatelessWidget {
     final target =
         geometry.minScrollExtent + fraction * geometry.scrollableExtent;
     controller.jumpTo(target);
-  }
-
-  Color _pick(
-    Color base,
-    Color hover,
-    Color pressed,
-    bool isHovered,
-    bool isPressed,
-  ) {
-    if (isPressed) return pressed;
-    if (isHovered) return hover;
-    return base;
   }
 }
 

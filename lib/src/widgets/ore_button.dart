@@ -64,13 +64,20 @@ class _OreButtonState extends State<OreButton> {
     final config =
         _resolveColors(colors, isHovered, colorPressed, styleEnabled);
     final height = _height(widget.size);
-    final padding = _padding(widget.size, theme.borderWidth);
+    final basePadding = _padding(widget.size, theme.borderWidth);
 
     final depthUnit = theme.borderWidth;
     final visualDepth = depthUnit * 2;
     final shadowDepth = isPressed ? 0.0 : visualDepth;
     final highlightDepth = depthUnit;
     final contentOffsetY = isPressed ? 0.0 : -visualDepth / 2;
+    final pressedPadding = EdgeInsets.fromLTRB(
+      basePadding.left,
+      (basePadding.top - visualDepth).clamp(0.0, basePadding.top),
+      basePadding.right,
+      (basePadding.bottom - visualDepth).clamp(0.0, basePadding.bottom),
+    );
+    final padding = isPressed ? pressedPadding : basePadding;
 
     Widget content = DefaultTextStyle.merge(
       style: theme.typography.label.copyWith(color: config.textColor),
@@ -202,7 +209,7 @@ class _OreButtonState extends State<OreButton> {
     }
   }
 
-  EdgeInsetsGeometry _padding(OreButtonSize size, double unit) {
+  EdgeInsets _padding(OreButtonSize size, double unit) {
     switch (size) {
       case OreButtonSize.sm:
         return EdgeInsets.symmetric(

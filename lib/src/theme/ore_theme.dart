@@ -63,23 +63,25 @@ class OreColors {
     required this.selection,
   });
 
-  factory OreColors.ore() {
+  factory OreColors.ore() => OreColors.dark();
+
+  factory OreColors.dark() {
     return const OreColors(
       background: Color(0xFF48494A),
-      surface: Color(0xFFD0D1D4),
-      surfaceHover: Color(0xFFB1B2B5),
-      surfacePressed: Color(0xFFB1B2B5),
-      surfaceDark: Color(0xFF313233),
-      border: Color(0xFF1E1E1F),
-      borderLight: Color(0xFF8C8D90),
-      shadow: Color(0xFF58585A),
-      shadowStrong: Color(0xFF333334),
-      highlight: Color(0x99FFFFFF),
-      highlightStrong: Color(0xCCFFFFFF),
-      textPrimary: Color(0xFF000000),
+      surface: Color(0xFF5B5D60),
+      surfaceHover: Color(0xFF676A6D),
+      surfacePressed: Color(0xFF535559),
+      surfaceDark: Color(0xFF2E2F31),
+      border: Color(0xFF141516),
+      borderLight: Color(0xFF7B7D80),
+      shadow: Color(0xFF1F2022),
+      shadowStrong: Color(0xFF121314),
+      highlight: Color(0x55FFFFFF),
+      highlightStrong: Color(0x88FFFFFF),
+      textPrimary: Color(0xFFF2F2F2),
       textInverse: Color(0xFFFFFFFF),
-      textMuted: Color(0xFFB1B2B5),
-      textDisabled: Color(0xFF48494A),
+      textMuted: Color(0xFFB2B4B7),
+      textDisabled: Color(0xFF6A6C70),
       accent: Color(0xFF3C8527),
       accentHover: Color(0xFF2A641C),
       accentPressed: Color(0xFF1D4D13),
@@ -93,9 +95,35 @@ class OreColors {
     );
   }
 
-  factory OreColors.dark() => OreColors.ore();
-
-  factory OreColors.light() => OreColors.ore();
+  factory OreColors.light() {
+    return const OreColors(
+      background: Color(0xFFE7E8EA),
+      surface: Color(0xFFF7F8FA),
+      surfaceHover: Color(0xFFE3E6EA),
+      surfacePressed: Color(0xFFD6D9DE),
+      surfaceDark: Color(0xFFBFC4CB),
+      border: Color(0xFF1E1F22),
+      borderLight: Color(0xFF9DA0A5),
+      shadow: Color(0xFF9EA1A6),
+      shadowStrong: Color(0xFF6B6D70),
+      highlight: Color(0x99FFFFFF),
+      highlightStrong: Color(0xCCFFFFFF),
+      textPrimary: Color(0xFF111111),
+      textInverse: Color(0xFFFFFFFF),
+      textMuted: Color(0xFF6F7175),
+      textDisabled: Color(0xFFB1B2B5),
+      accent: Color(0xFF3C8527),
+      accentHover: Color(0xFF2A641C),
+      accentPressed: Color(0xFF1D4D13),
+      danger: Color(0xFFC33636),
+      dangerHover: Color(0xFFC02D2D),
+      dangerPressed: Color(0xFFAD1D1D),
+      info: Color(0xFF2E6BE5),
+      warning: Color(0xFFFFE866),
+      success: Color(0xFF6CC349),
+      selection: Color(0x806CC349),
+    );
+  }
 
   OreColors copyWith({
     Color? background,
@@ -276,7 +304,22 @@ class OreThemeData extends ThemeExtension<OreThemeData> {
   });
 
   factory OreThemeData.ore() {
-    final colors = OreColors.ore();
+    return OreThemeData._fromColors(OreColors.dark());
+  }
+
+  factory OreThemeData.dark() => OreThemeData._fromColors(OreColors.dark());
+
+  factory OreThemeData.light() => OreThemeData._fromColors(OreColors.light());
+
+  factory OreThemeData.fromBrightness(Brightness brightness) {
+    return brightness == Brightness.dark
+        ? OreThemeData.dark()
+        : OreThemeData.light();
+  }
+
+  static OreThemeData fallback() => OreThemeData.ore();
+
+  factory OreThemeData._fromColors(OreColors colors) {
     return OreThemeData(
       colors: colors,
       typography: OreTypography.ore(colors),
@@ -287,16 +330,6 @@ class OreThemeData extends ThemeExtension<OreThemeData> {
       bevelDepth: OreTokens.borderWidth * 2,
     );
   }
-
-  factory OreThemeData.dark() => OreThemeData.ore();
-
-  factory OreThemeData.light() => OreThemeData.ore();
-
-  factory OreThemeData.fromBrightness(Brightness brightness) {
-    return OreThemeData.ore();
-  }
-
-  static OreThemeData fallback() => OreThemeData.ore();
 
   @override
   OreThemeData copyWith({
@@ -358,5 +391,75 @@ class OreTheme extends InheritedTheme {
   @override
   Widget wrap(BuildContext context, Widget child) {
     return OreTheme(data: data, child: child);
+  }
+}
+
+class OreThemeController extends ChangeNotifier {
+  OreThemeController({Brightness brightness = Brightness.dark})
+      : _brightness = brightness;
+
+  Brightness _brightness;
+
+  Brightness get brightness => _brightness;
+
+  bool get isDark => _brightness == Brightness.dark;
+
+  set brightness(Brightness value) {
+    if (value == _brightness) return;
+    _brightness = value;
+    notifyListeners();
+  }
+
+  void toggle() {
+    brightness = isDark ? Brightness.light : Brightness.dark;
+  }
+}
+
+class OreThemeProvider extends InheritedNotifier<OreThemeController> {
+  const OreThemeProvider({
+    super.key,
+    required OreThemeController controller,
+    required super.child,
+  }) : super(notifier: controller);
+
+  static OreThemeController of(BuildContext context) {
+    final provider =
+        context.dependOnInheritedWidgetOfExactType<OreThemeProvider>();
+    assert(provider != null, 'OreThemeProvider not found in context.');
+    return provider!.notifier!;
+  }
+}
+
+typedef OreThemeWidgetBuilder = Widget Function(
+  BuildContext context,
+  OreThemeData data,
+  Brightness brightness,
+);
+
+class OreThemeBuilder extends StatelessWidget {
+  const OreThemeBuilder({
+    super.key,
+    required this.controller,
+    required this.builder,
+  });
+
+  final OreThemeController controller;
+  final OreThemeWidgetBuilder builder;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, _) {
+        final data = OreThemeData.fromBrightness(controller.brightness);
+        return OreThemeProvider(
+          controller: controller,
+          child: OreTheme(
+            data: data,
+            child: builder(context, data, controller.brightness),
+          ),
+        );
+      },
+    );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme/ore_control_colors.dart';
 import '../theme/ore_highlight.dart';
 import '../theme/ore_theme.dart';
 import '../theme/ore_tokens.dart';
@@ -26,7 +27,7 @@ class OreSlider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = OreTheme.of(context);
-    final colors = theme.colors;
+    final colors = resolveControlColors(context, theme.colors);
     final sliderTheme = SliderTheme.of(context);
     final valueIndicatorTextStyle =
         (sliderTheme.valueIndicatorTextStyle ?? theme.typography.caption)

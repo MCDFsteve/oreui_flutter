@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme/ore_control_colors.dart';
 import '../theme/ore_highlight.dart';
 import '../theme/ore_theme.dart';
 import '../theme/ore_tokens.dart';
@@ -50,7 +51,7 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
   @override
   Widget build(BuildContext context) {
     final theme = OreTheme.of(context);
-    final colors = theme.colors;
+    final colors = resolveControlColors(context, theme.colors);
     final isPressed = _pressed && _enabled;
     final isHovered = _hovered && _enabled;
     final config = _resolveColors(colors, isHovered, isPressed, _enabled);
@@ -210,7 +211,7 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
 
   List<PopupMenuEntry<T>> _buildMenuItems(double width) {
     final theme = OreTheme.of(context);
-    final colors = theme.colors;
+    final colors = resolveControlColors(context, theme.colors);
     final style = theme.typography.body.copyWith(color: colors.textPrimary);
     return widget.items
         .map(

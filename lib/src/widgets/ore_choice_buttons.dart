@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+import '../theme/ore_control_colors.dart';
 import '../theme/ore_theme.dart';
 import '../theme/ore_tokens.dart';
 import 'ore_button.dart';
@@ -28,7 +29,7 @@ class OreChoiceButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = OreTheme.of(context);
-    final colors = theme.colors;
+    final colors = resolveControlColors(context, theme.colors);
     final borderWidth = theme.borderWidth;
     final indicatorHeight =
         borderWidth * OreTokens.choiceIndicatorHeightUnits;

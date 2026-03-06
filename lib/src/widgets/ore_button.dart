@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme/ore_control_colors.dart';
 import '../theme/ore_highlight.dart';
 import '../theme/ore_theme.dart';
 import '../theme/ore_tokens.dart';
@@ -54,7 +55,7 @@ class _OreButtonState extends State<OreButton> {
   @override
   Widget build(BuildContext context) {
     final theme = OreTheme.of(context);
-    final colors = theme.colors;
+    final colors = resolveControlColors(context, theme.colors);
     final isPressed = (_pressed && _enabled) || widget.forcePressed;
     final colorPressed = (_pressed && _enabled) ||
         (widget.forcePressed && !widget.forcePressedKeepsColor);

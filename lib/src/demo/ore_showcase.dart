@@ -11,24 +11,39 @@ import '../widgets/ore_dropdown_button.dart';
 import '../widgets/ore_strip.dart';
 import '../widgets/ore_slider.dart';
 import '../widgets/ore_switch.dart';
+import '../widgets/ore_theme_mode_switch.dart';
 import '../widgets/ore_text_field.dart';
 
-class OreShowcaseApp extends StatelessWidget {
+class OreShowcaseApp extends StatefulWidget {
   const OreShowcaseApp({super.key});
 
   @override
+  State<OreShowcaseApp> createState() => _OreShowcaseAppState();
+}
+
+class _OreShowcaseAppState extends State<OreShowcaseApp> {
+  late final OreThemeController _controller = OreThemeController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final ore = OreThemeData.ore();
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        extensions: [ore],
-      ),
-      home: OreTheme(
-        data: ore,
-        child: const OreShowcasePage(),
-      ),
+    return OreThemeBuilder(
+      controller: _controller,
+      builder: (context, data, brightness) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            brightness: brightness,
+            extensions: [data],
+          ),
+          home: const OreShowcasePage(),
+        );
+      },
     );
   }
 }
@@ -97,7 +112,24 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Ore UI Showcase', style: ore.typography.title),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Ore UI Showcase',
+                                style: ore.typography.title,
+                              ),
+                            ),
+                            const SizedBox(width: OreTokens.gapSm),
+                            Text(
+                              '深色模式',
+                              style: ore.typography.caption,
+                            ),
+                            const SizedBox(width: OreTokens.gapSm),
+                            const OreThemeModeSwitch(),
+                          ],
+                        ),
                         const SizedBox(height: OreTokens.gapLg),
                         Text('Buttons', style: ore.typography.label),
                         const SizedBox(height: OreTokens.gapSm),
@@ -240,7 +272,6 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
                 ),
               ),
               OreStrip(
-                tone: OreStripTone.dark,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: OreTokens.gapLg,
@@ -248,16 +279,12 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
                   ),
                   child: DefaultTextStyle.merge(
                     style: ore.typography.body.copyWith(
-                      color: colors.textInverse,
+                      color: colors.textPrimary,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          '难度',
-                          style: ore.typography.label
-                              .copyWith(color: colors.textInverse),
-                        ),
+                        Text('难度', style: ore.typography.label),
                         const SizedBox(height: OreTokens.gapSm),
                         OreChoiceButtons(
                           items: _difficultyItems,
@@ -270,8 +297,6 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
                           items: _difficultyDescriptions,
                           selectedIndex: _difficulty,
                           padding: EdgeInsets.zero,
-                          style: ore.typography.body
-                              .copyWith(color: colors.textInverse),
                         ),
                       ],
                     ),

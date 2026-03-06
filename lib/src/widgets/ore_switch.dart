@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../theme/ore_control_colors.dart';
 import '../theme/ore_highlight.dart';
 import '../theme/ore_theme.dart';
 import '../theme/ore_tokens.dart';
@@ -73,7 +74,9 @@ class _OreSwitchState extends State<OreSwitch>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _syncStaticPosition();
+    if (!_wiggleController.isAnimating) {
+      _syncStaticPosition();
+    }
   }
 
   @override
@@ -151,6 +154,7 @@ class _OreSwitchState extends State<OreSwitch>
   Widget build(BuildContext context) {
     final theme = OreTheme.of(context);
     final colors = theme.colors;
+    final controlColors = resolveControlColors(context, colors);
     final isOn = widget.value;
     final isHovered = _hovered && _enabled;
     final isPressed = _pressed && _enabled;
@@ -172,7 +176,7 @@ class _OreSwitchState extends State<OreSwitch>
         : OreHighlight.muted(colors: colors);
     const trackCornerHighlightFactor = 0.08;
     final knobHighlight = OreHighlight.resolve(
-      colors: colors,
+      colors: controlColors,
       colored: false,
       hovered: isHovered,
     );
@@ -244,15 +248,17 @@ class _OreSwitchState extends State<OreSwitch>
       ),
     );
 
-    final sliderColor =
-        isInteracting ? colors.surfaceHover : colors.surface;
+    final sliderColor = isInteracting
+        ? controlColors.surfaceHover
+        : controlColors.surface;
 
     final slider = OreKnob(
       size: metrics.knobSize,
       color: sliderColor,
-      borderColor: _enabled ? colors.border : colors.borderLight,
+      borderColor:
+          _enabled ? controlColors.border : controlColors.borderLight,
       highlightColor: knobHighlight,
-      shadowColor: colors.shadow,
+      shadowColor: controlColors.shadow,
       borderWidth: theme.borderWidth,
       depth: shadowDepth,
       highlightDepth: highlightDepth,

@@ -54,7 +54,7 @@ class OreTextField extends StatelessWidget {
 
     final surfaceColor = enabled ? colors.surfaceDark : colors.surface;
     final borderColor = enabled ? colors.border : colors.borderLight;
-    final textColor = enabled ? colors.textInverse : colors.textDisabled;
+    final textColor = enabled ? colors.textPrimary : colors.textDisabled;
 
     final isSingleLine =
         (maxLines ?? 1) == 1 && (minLines ?? 1) == 1;

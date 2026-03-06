@@ -7,6 +7,7 @@ import '../widgets/ore_card.dart';
 import '../widgets/ore_checkbox.dart';
 import '../widgets/ore_choice_buttons.dart';
 import '../widgets/ore_divider.dart';
+import '../widgets/ore_dropdown_button.dart';
 import '../widgets/ore_slider.dart';
 import '../widgets/ore_switch.dart';
 import '../widgets/ore_text_field.dart';
@@ -44,8 +45,15 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
   bool? _tri = null;
   double _slider = 0.6;
   int _choice = 0;
+  String _dropdownValue = '选项一';
   final TextEditingController _controller =
       TextEditingController(text: 'Ore UI');
+
+  static const List<OreDropdownItem<String>> _dropdownItems = [
+    OreDropdownItem(value: '选项一', child: Text('选项一')),
+    OreDropdownItem(value: '选项二', child: Text('选项二')),
+    OreDropdownItem(value: '选项三', child: Text('选项三')),
+  ];
 
   @override
   void dispose() {
@@ -122,6 +130,13 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
                     OreSlider(
                       value: _slider,
                       onChanged: (value) => setState(() => _slider = value),
+                    ),
+                    const SizedBox(height: OreTokens.gapMd),
+                    OreDropdownButton<String>(
+                      items: _dropdownItems,
+                      value: _dropdownValue,
+                      onChanged: (value) =>
+                          setState(() => _dropdownValue = value),
                     ),
                   ],
                 ),

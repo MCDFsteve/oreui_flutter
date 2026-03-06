@@ -38,11 +38,11 @@ class OreTokens {
   static const double checkboxMixedWidthUnits = checkboxSizeUnits / 2;
   static const double checkboxMixedHeightUnits = checkboxSizeUnits / 10;
   static const double buttonPadSmHUnits = 6;
-  static const double buttonPadSmVUnits = 3;
+  static const double buttonPadSmVUnits = 4;
   static const double buttonPadMdHUnits = 8;
-  static const double buttonPadMdVUnits = 4;
+  static const double buttonPadMdVUnits = 5;
   static const double buttonPadLgHUnits = 10;
-  static const double buttonPadLgVUnits = 5;
+  static const double buttonPadLgVUnits = 6;
   static const double inputHintOffsetUnits = 1;
   static const double choiceIndicatorWidthFactor = 2 / 7;
   static const double choiceIndicatorHeightUnits = 1;

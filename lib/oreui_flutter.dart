@@ -8,6 +8,7 @@ export 'src/widgets/ore_card.dart';
 export 'src/widgets/ore_checkbox.dart';
 export 'src/widgets/ore_choice_buttons.dart';
 export 'src/widgets/ore_choice_description.dart';
+export 'src/widgets/ore_choice_title.dart';
 export 'src/widgets/ore_divider.dart';
 export 'src/widgets/ore_dropdown_button.dart';
 export 'src/widgets/ore_strip.dart';

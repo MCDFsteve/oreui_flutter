@@ -33,7 +33,7 @@ class OreChoiceButtons extends StatelessWidget {
     final borderWidth = theme.borderWidth;
     final indicatorHeight =
         borderWidth * OreTokens.choiceIndicatorHeightUnits;
-    final overlap = borderWidth;
+    final overlap = borderWidth * 2;
 
     final children = List.generate(items.length, (index) {
       final selected = index == selectedIndex;

@@ -14,7 +14,7 @@ class OreStrip extends StatelessWidget {
     this.highlightColor,
     this.shadowColor,
     this.alignment = Alignment.centerLeft,
-    this.tone = OreStripTone.surface,
+    this.tone = OreStripTone.dark,
   });
 
   final Widget child;

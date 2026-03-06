@@ -218,12 +218,14 @@ class OreTypography {
   final TextStyle body;
   final TextStyle label;
   final TextStyle caption;
+  final TextStyle choiceTitle;
 
   const OreTypography({
     required this.title,
     required this.body,
     required this.label,
     required this.caption,
+    required this.choiceTitle,
   });
 
   factory OreTypography.ore(OreColors colors) {
@@ -256,6 +258,13 @@ class OreTypography {
         height: 1.2,
         color: colors.textMuted,
       ),
+      choiceTitle: TextStyle(
+        fontFamily: _oreFontFamily,
+        package: _oreFontPackage,
+        fontSize: 18,
+        height: 1.2,
+        color: colors.textPrimary,
+      ),
     );
   }
 
@@ -264,12 +273,14 @@ class OreTypography {
     TextStyle? body,
     TextStyle? label,
     TextStyle? caption,
+    TextStyle? choiceTitle,
   }) {
     return OreTypography(
       title: title ?? this.title,
       body: body ?? this.body,
       label: label ?? this.label,
       caption: caption ?? this.caption,
+      choiceTitle: choiceTitle ?? this.choiceTitle,
     );
   }
 
@@ -279,6 +290,7 @@ class OreTypography {
       body: TextStyle.lerp(a.body, b.body, t)!,
       label: TextStyle.lerp(a.label, b.label, t)!,
       caption: TextStyle.lerp(a.caption, b.caption, t)!,
+      choiceTitle: TextStyle.lerp(a.choiceTitle, b.choiceTitle, t)!,
     );
   }
 }

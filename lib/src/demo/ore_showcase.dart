@@ -6,6 +6,7 @@ import '../widgets/ore_button.dart';
 import '../widgets/ore_checkbox.dart';
 import '../widgets/ore_choice_buttons.dart';
 import '../widgets/ore_choice_description.dart';
+import '../widgets/ore_choice_title.dart';
 import '../widgets/ore_divider.dart';
 import '../widgets/ore_dropdown_button.dart';
 import '../widgets/ore_strip.dart';
@@ -284,7 +285,7 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('难度', style: ore.typography.label),
+                        const OreChoiceTitle(child: Text('难度')),
                         const SizedBox(height: OreTokens.gapSm),
                         OreChoiceButtons(
                           items: _difficultyItems,

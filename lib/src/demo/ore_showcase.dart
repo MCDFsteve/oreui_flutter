@@ -7,11 +7,13 @@ import '../widgets/ore_checkbox.dart';
 import '../widgets/ore_choice_buttons.dart';
 import '../widgets/ore_choice_description.dart';
 import '../widgets/ore_choice_title.dart';
+import '../widgets/ore_card.dart';
 import '../widgets/ore_divider.dart';
 import '../widgets/ore_dropdown_button.dart';
-import '../widgets/ore_strip.dart';
 import '../widgets/ore_pixel_icon.dart';
+import '../widgets/ore_scrollbar.dart';
 import '../widgets/ore_slider.dart';
+import '../widgets/ore_strip.dart';
 import '../widgets/ore_switch.dart';
 import '../widgets/ore_theme_mode_switch.dart';
 import '../widgets/ore_text_field.dart';
@@ -64,9 +66,12 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
   int _difficulty = 0;
   double _slider = 0.6;
   int _choice = 0;
+  OreChoiceDock _choiceDock = OreChoiceDock.bottom;
   String _dropdownValue = '选项一';
   final TextEditingController _controller =
       TextEditingController(text: 'Ore UI');
+  final ScrollController _pageScrollController = ScrollController();
+  final ScrollController _scrollController = ScrollController();
   final TextEditingController _buttonWidthController =
       TextEditingController(text: '40');
   double? _buttonWidthUnits = 40;
@@ -114,10 +119,18 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
     Text('会生成敌对生物，造成正常伤害。饥饿条会消耗，且生命值降低至一半颗心。'),
     Text('会生成敌对生物，且其造成的伤害增加。饥饿条会消耗，且生命值降低为零。'),
   ];
+  static const List<Widget> _choiceDockItems = [
+    Text('贴底部'),
+    Text('贴顶部'),
+    Text('贴左侧'),
+    Text('贴右侧'),
+  ];
 
   @override
   void dispose() {
     _controller.dispose();
+    _pageScrollController.dispose();
+    _scrollController.dispose();
     _buttonWidthController.dispose();
     super.dispose();
   }
@@ -144,10 +157,13 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
     return Scaffold(
       backgroundColor: colors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+        child: OreScrollbar(
+          controller: _pageScrollController,
+          child: SingleChildScrollView(
+            controller: _pageScrollController,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
               OreStrip(
                 child: Padding(
                   padding: const EdgeInsets.all(OreTokens.gapLg),
@@ -288,6 +304,33 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
                           onChanged: (value) =>
                               setState(() => _dropdownValue = value),
                         ),
+                        const SizedBox(height: OreTokens.gapMd),
+                        Text('Scrollbar', style: ore.typography.label),
+                        const SizedBox(height: OreTokens.gapSm),
+                        OreCard(
+                          padding: EdgeInsets.zero,
+                          child: SizedBox(
+                            height: OreTokens.controlHeightLg * 4,
+                            child: OreScrollbar(
+                              controller: _scrollController,
+                              child: ListView.separated(
+                                controller: _scrollController,
+                                padding: const EdgeInsets.fromLTRB(
+                                  OreTokens.gapSm,
+                                  OreTokens.gapSm,
+                                  OreTokens.gapXl,
+                                  OreTokens.gapSm,
+                                ),
+                                itemCount: 18,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: OreTokens.gapXs),
+                                itemBuilder: (context, index) => Text(
+                                  '条目 ${index + 1}',
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -305,17 +348,29 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
                       children: [
                         Text('Toggles', style: ore.typography.label),
                         const SizedBox(height: OreTokens.gapSm),
+                        Text('Choice Layout', style: ore.typography.caption),
+                        const SizedBox(height: OreTokens.gapXs),
+                        OreChoiceButtons(
+                          items: _choiceDockItems,
+                          selectedIndex: _choiceDock.index,
+                          onChanged: (value) => setState(() =>
+                              _choiceDock = OreChoiceDock.values[value]),
+                          size: OreButtonSize.sm,
+                        ),
+                        const SizedBox(height: OreTokens.gapSm),
+                        OreChoiceButtons(
+                          items: _choiceItems,
+                          selectedIndex: _choice,
+                          onChanged: (value) =>
+                              setState(() => _choice = value),
+                          dock: _choiceDock,
+                        ),
+                        const SizedBox(height: OreTokens.gapSm),
                         Wrap(
                           spacing: OreTokens.gapLg,
                           runSpacing: OreTokens.gapSm,
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
-                            OreChoiceButtons(
-                              items: _choiceItems,
-                              selectedIndex: _choice,
-                              onChanged: (value) =>
-                                  setState(() => _choice = value),
-                            ),
                             OreCheckbox(
                               value: _checked,
                               onChanged: (value) =>
@@ -375,6 +430,7 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

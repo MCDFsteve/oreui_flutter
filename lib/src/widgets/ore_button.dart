@@ -5,6 +5,7 @@ import '../theme/ore_highlight.dart';
 import '../theme/ore_theme.dart';
 import '../theme/ore_tokens.dart';
 import 'ore_pixel_icon.dart';
+import 'ore_shadow.dart';
 import 'ore_surface.dart';
 
 enum OreButtonVariant { primary, secondary, ghost, danger }
@@ -28,6 +29,8 @@ class OreButton extends StatefulWidget {
     this.focusNode,
     this.forcePressed = false,
     this.forcePressedKeepsColor = false,
+    this.pressedAxis = Axis.vertical,
+    this.shadowSide,
   });
 
   final Widget child;
@@ -44,6 +47,8 @@ class OreButton extends StatefulWidget {
   final FocusNode? focusNode;
   final bool forcePressed;
   final bool forcePressedKeepsColor;
+  final Axis pressedAxis;
+  final OreShadowSide? shadowSide;
 
   @override
   State<OreButton> createState() => _OreButtonState();
@@ -77,28 +82,56 @@ class _OreButtonState extends State<OreButton> {
     final visualDepth = depthUnit * 2;
     final shadowDepth = isPressed ? 0.0 : visualDepth;
     final highlightDepth = depthUnit;
-    final contentOffsetY = isPressed ? 0.0 : -visualDepth / 2;
-    final pressedPadding = EdgeInsets.fromLTRB(
-      basePadding.left,
-      (basePadding.top - visualDepth).clamp(0.0, basePadding.top),
-      basePadding.right,
-      (basePadding.bottom - visualDepth).clamp(0.0, basePadding.bottom),
+    final resolvedShadowSide =
+        widget.shadowSide ?? OreShadowSide.bottom;
+    final pressedAlignment = _resolvePressedAlignment(
+      widget.pressedAxis,
+      resolvedShadowSide,
     );
+    final contentOffset = isPressed
+        ? 0.0
+        : _resolveRaisedOffset(
+            visualDepth / 2,
+            widget.pressedAxis,
+            resolvedShadowSide,
+          );
+    final pressedPadding = widget.pressedAxis == Axis.vertical
+        ? EdgeInsets.fromLTRB(
+            basePadding.left,
+            (basePadding.top - visualDepth).clamp(0.0, basePadding.top),
+            basePadding.right,
+            (basePadding.bottom - visualDepth)
+                .clamp(0.0, basePadding.bottom),
+          )
+        : EdgeInsets.fromLTRB(
+            (basePadding.left - visualDepth).clamp(0.0, basePadding.left),
+            basePadding.top,
+            (basePadding.right - visualDepth)
+                .clamp(0.0, basePadding.right),
+            basePadding.bottom,
+          );
     final padding = isPressed ? pressedPadding : basePadding;
 
+    final expandContent = widget.fullWidth || widget.width != null;
     Widget content = DefaultTextStyle.merge(
       style: theme.typography.label.copyWith(color: config.textColor),
-      child: _buildContent(config.textColor),
+      child: IconTheme.merge(
+        data: IconThemeData(color: config.textColor),
+        child: _buildContent(context, config.textColor, expandContent),
+      ),
     );
     content = TweenAnimationBuilder<double>(
-      tween: Tween<double>(begin: contentOffsetY, end: contentOffsetY),
+      tween: Tween<double>(begin: contentOffset, end: contentOffset),
       duration: OreTokens.fast,
       builder: (context, value, child) {
         final dpr = MediaQuery.of(context).devicePixelRatio;
         final snapped =
             (value * dpr).roundToDouble() / dpr;
+        final offset = widget.pressedAxis == Axis.horizontal
+            ? Offset(snapped, 0)
+            : Offset(0, snapped);
         return Transform.translate(
-          offset: Offset(0, snapped),
+          offset: offset,
           child: child,
         );
       },
@@ -114,6 +147,7 @@ class _OreButtonState extends State<OreButton> {
       depth: visualDepth,
       highlightDepth: highlightDepth,
       shadowDepth: shadowDepth,
+      shadowSide: widget.shadowSide,
       swapHighlightOnPressed: false,
       alignment: Alignment.center,
       padding: padding,
@@ -122,25 +156,101 @@ class _OreButtonState extends State<OreButton> {
     );
 
     final pressedCut = isPressed ? visualDepth : 0.0;
-    final pressedHeight =
-        (height - pressedCut).clamp(0.0, height);
     final widthFactor =
         (widget.width == null && !widget.fullWidth) ? 1.0 : null;
     final innerWidth =
         (widget.width != null || widget.fullWidth) ? double.infinity : null;
 
-    Widget buttonBody = SizedBox(
-      height: height,
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        widthFactor: widthFactor,
-        child: SizedBox(
-          width: innerWidth,
-          height: pressedHeight,
-          child: surface,
+    Widget buttonBody;
+    if (widget.pressedAxis == Axis.vertical) {
+      final pressedHeight =
+          (height - pressedCut).clamp(0.0, height);
+      buttonBody = SizedBox(
+        height: height,
+        child: Align(
+          alignment: pressedAlignment,
+          widthFactor: widthFactor,
+          child: SizedBox(
+            width: innerWidth,
+            height: pressedHeight,
+            child: surface,
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      final pressedInset = isPressed ? pressedCut : 0.0;
+      final pressedInsets = _resolvePressedInsets(
+        widget.pressedAxis,
+        resolvedShadowSide,
+        pressedInset,
+      );
+      final pressedSurface = Padding(
+        padding: pressedInsets,
+        child: surface,
+      );
+      Widget contentBody = SizedBox(
+        height: height,
+        child: Align(
+          alignment: pressedAlignment,
+          widthFactor: widthFactor,
+          child: SizedBox(
+            width: innerWidth,
+            height: height,
+            child: pressedSurface,
+          ),
+        ),
+      );
+
+      if (isPressed && pressedInset > 0) {
+        final sizerSurface = OreSurface(
+          color: config.background,
+          borderColor: config.borderColor,
+          highlightColor: config.highlightColor,
+          shadowColor: config.shadowColor,
+          borderWidth: theme.borderWidth,
+          depth: visualDepth,
+          highlightDepth: highlightDepth,
+          shadowDepth: shadowDepth,
+          shadowSide: widget.shadowSide,
+          swapHighlightOnPressed: false,
+          alignment: Alignment.center,
+          padding: basePadding,
+          pressed: false,
+          child: content,
+        );
+        final sizer = IgnorePointer(
+          child: ExcludeSemantics(
+            child: Opacity(
+              opacity: 0,
+              child: SizedBox(
+                height: height,
+                child: Align(
+                  alignment: Alignment.center,
+                  widthFactor: widthFactor,
+                  child: SizedBox(
+                    width: innerWidth,
+                    height: height,
+                    child: sizerSurface,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        contentBody = SizedBox(
+          height: height,
+          child: Stack(
+            alignment: pressedAlignment,
+            children: [
+              sizer,
+              contentBody,
+            ],
+          ),
+        );
+      }
+
+      buttonBody = contentBody;
+    }
 
     if (widget.width != null) {
       buttonBody = SizedBox(width: widget.width, child: buttonBody);
@@ -168,7 +278,11 @@ class _OreButtonState extends State<OreButton> {
     );
   }
 
-  Widget _buildContent(Color textColor) {
+  Widget _buildContent(
+    BuildContext context,
+    Color textColor,
+    bool expandContent,
+  ) {
     final parts = <Widget>[];
     final hasAffixes =
         widget.isLoading || widget.leading != null || widget.trailing != null;
@@ -187,17 +301,22 @@ class _OreButtonState extends State<OreButton> {
     }
 
     if (widget.leading != null) {
-      parts.add(_normalizeIcon(widget.leading!, textColor));
+      parts.add(_normalizeIcon(context, widget.leading!, textColor));
     }
 
-    parts.add(hasAffixes ? Flexible(child: widget.child) : widget.child);
+    final normalizedChild = _normalizeIcon(context, widget.child, textColor);
+    parts.add(hasAffixes ? Flexible(child: normalizedChild) : normalizedChild);
 
     if (widget.trailing != null) {
-      parts.add(_normalizeIcon(widget.trailing!, textColor));
+      parts.add(_normalizeIcon(context, widget.trailing!, textColor));
     }
 
     if (parts.length == 1) {
-      return parts.first;
+      if (!expandContent) return parts.first;
+      return Align(
+        alignment: Alignment.center,
+        child: parts.first,
+      );
     }
 
     return Row(
@@ -220,17 +339,32 @@ class _OreButtonState extends State<OreButton> {
     return spaced;
   }
 
-  Widget _normalizeIcon(Widget widget, Color textColor) {
-    if (widget is OrePixelIcon) return widget;
+  Widget _normalizeIcon(
+    BuildContext context,
+    Widget widget,
+    Color textColor,
+  ) {
+    if (widget is OrePixelIcon) {
+      return UnconstrainedBox(
+        alignment: Alignment.center,
+        constrainedAxis: Axis.vertical,
+        child: widget,
+      );
+    }
     if (widget is Icon) {
       final iconData = widget.icon;
       if (iconData == null) return widget;
-      return OrePixelIcon(
+      final converted = OrePixelIcon(
         icon: iconData,
         size: widget.size,
         color: widget.color ?? textColor,
         semanticLabel: widget.semanticLabel,
         textDirection: widget.textDirection,
+      );
+      return UnconstrainedBox(
+        alignment: Alignment.center,
+        constrainedAxis: Axis.vertical,
+        child: converted,
       );
     }
     return widget;
@@ -353,6 +487,81 @@ class _OreButtonState extends State<OreButton> {
   void _setPressed(bool value) {
     if (_pressed == value) return;
     setState(() => _pressed = value);
+  }
+
+  double _resolveRaisedOffset(
+    double depth,
+    Axis axis,
+    OreShadowSide side,
+  ) {
+    if (axis == Axis.horizontal) {
+      switch (side) {
+        case OreShadowSide.left:
+          return depth;
+        case OreShadowSide.right:
+          return -depth;
+        case OreShadowSide.top:
+        case OreShadowSide.bottom:
+          return -depth;
+      }
+    }
+
+    switch (side) {
+      case OreShadowSide.top:
+        return depth;
+      case OreShadowSide.bottom:
+        return -depth;
+      case OreShadowSide.left:
+      case OreShadowSide.right:
+        return -depth;
+    }
+  }
+
+  Alignment _resolvePressedAlignment(
+    Axis axis,
+    OreShadowSide side,
+  ) {
+    if (axis == Axis.horizontal) {
+      switch (side) {
+        case OreShadowSide.left:
+          return Alignment.centerLeft;
+        case OreShadowSide.right:
+          return Alignment.centerRight;
+        case OreShadowSide.top:
+        case OreShadowSide.bottom:
+          return Alignment.center;
+      }
+    }
+
+    switch (side) {
+      case OreShadowSide.top:
+        return Alignment.topCenter;
+      case OreShadowSide.bottom:
+        return Alignment.bottomCenter;
+      case OreShadowSide.left:
+      case OreShadowSide.right:
+        return Alignment.center;
+    }
+  }
+
+  EdgeInsets _resolvePressedInsets(
+    Axis axis,
+    OreShadowSide side,
+    double inset,
+  ) {
+    if (inset <= 0) return EdgeInsets.zero;
+    if (axis == Axis.horizontal) {
+      switch (side) {
+        case OreShadowSide.left:
+          return EdgeInsets.only(right: inset);
+        case OreShadowSide.right:
+          return EdgeInsets.only(left: inset);
+        case OreShadowSide.top:
+        case OreShadowSide.bottom:
+          return EdgeInsets.symmetric(horizontal: inset / 2);
+      }
+    }
+    return EdgeInsets.zero;
   }
 }
 

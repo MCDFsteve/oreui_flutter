@@ -7,6 +7,40 @@ import '../theme/ore_control_colors.dart';
 import '../theme/ore_theme.dart';
 import '../theme/ore_tokens.dart';
 import 'ore_button.dart';
+import 'ore_shadow.dart';
+
+enum OreChoiceDock { bottom, top, left, right }
+
+extension on OreChoiceDock {
+  Axis get axis =>
+      this == OreChoiceDock.left || this == OreChoiceDock.right
+          ? Axis.vertical
+          : Axis.horizontal;
+
+  OreShadowSide get shadowSide {
+    switch (this) {
+      case OreChoiceDock.top:
+        return OreShadowSide.top;
+      case OreChoiceDock.bottom:
+        return OreShadowSide.bottom;
+      case OreChoiceDock.left:
+        return OreShadowSide.left;
+      case OreChoiceDock.right:
+        return OreShadowSide.right;
+    }
+  }
+
+  CrossAxisAlignment get crossAxisAlignment {
+    switch (this) {
+      case OreChoiceDock.top:
+      case OreChoiceDock.left:
+        return CrossAxisAlignment.start;
+      case OreChoiceDock.bottom:
+      case OreChoiceDock.right:
+        return CrossAxisAlignment.end;
+    }
+  }
+}
 
 class OreChoiceButtons extends StatelessWidget {
   const OreChoiceButtons({
@@ -17,6 +51,7 @@ class OreChoiceButtons extends StatelessWidget {
     this.size = OreButtonSize.md,
     this.fullWidth = false,
     this.buttonWidth,
+    this.dock = OreChoiceDock.bottom,
   });
 
   final List<Widget> items;
@@ -25,6 +60,7 @@ class OreChoiceButtons extends StatelessWidget {
   final OreButtonSize size;
   final bool fullWidth;
   final double? buttonWidth;
+  final OreChoiceDock dock;
 
   bool get _enabled => onChanged != null;
 
@@ -36,6 +72,10 @@ class OreChoiceButtons extends StatelessWidget {
     final indicatorHeight =
         borderWidth * OreTokens.choiceIndicatorHeightUnits;
     final overlap = borderWidth;
+    final axis = dock.axis;
+    final pressedAxis =
+        axis == Axis.vertical ? Axis.horizontal : Axis.vertical;
+    final shadowSide = dock.shadowSide;
 
     final children = List.generate(items.length, (index) {
       final selected = index == selectedIndex;
@@ -48,6 +88,8 @@ class OreChoiceButtons extends StatelessWidget {
         forcePressed: selected,
         forcePressedKeepsColor: selected,
         width: buttonWidth,
+        pressedAxis: pressedAxis,
+        shadowSide: shadowSide,
         child: items[index],
       );
       final decorated = Stack(
@@ -77,10 +119,11 @@ class OreChoiceButtons extends StatelessWidget {
       return decorated;
     });
 
-    return _OverlapRow(
+    return _OverlapStack(
+      axis: axis,
       overlap: overlap,
       expand: fullWidth && buttonWidth == null,
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: dock.crossAxisAlignment,
       textDirection: Directionality.of(context),
       topIndex: selectedIndex,
       children: children,
@@ -88,8 +131,9 @@ class OreChoiceButtons extends StatelessWidget {
   }
 }
 
-class _OverlapRow extends MultiChildRenderObjectWidget {
-  const _OverlapRow({
+class _OverlapStack extends MultiChildRenderObjectWidget {
+  const _OverlapStack({
+    required this.axis,
     required this.overlap,
     required this.expand,
     required this.crossAxisAlignment,
@@ -98,6 +142,7 @@ class _OverlapRow extends MultiChildRenderObjectWidget {
     required super.children,
   });
 
+  final Axis axis;
   final double overlap;
   final bool expand;
   final CrossAxisAlignment crossAxisAlignment;
@@ -106,7 +151,8 @@ class _OverlapRow extends MultiChildRenderObjectWidget {
 
   @override
   RenderObject createRenderObject(BuildContext context) {
-    return _RenderOverlapRow(
+    return _RenderOverlapStack(
+      axis: axis,
       overlap: overlap,
       expand: expand,
       crossAxisAlignment: crossAxisAlignment,
@@ -118,9 +164,10 @@ class _OverlapRow extends MultiChildRenderObjectWidget {
   @override
   void updateRenderObject(
     BuildContext context,
-    covariant _RenderOverlapRow renderObject,
+    covariant _RenderOverlapStack renderObject,
   ) {
     renderObject
+      ..axis = axis
       ..overlap = overlap
       ..expand = expand
       ..crossAxisAlignment = crossAxisAlignment
@@ -131,27 +178,37 @@ class _OverlapRow extends MultiChildRenderObjectWidget {
 
 class _OverlapParentData extends ContainerBoxParentData<RenderBox> {}
 
-class _RenderOverlapRow extends RenderBox
+class _RenderOverlapStack extends RenderBox
     with
         ContainerRenderObjectMixin<RenderBox, _OverlapParentData>,
         RenderBoxContainerDefaultsMixin<RenderBox, _OverlapParentData> {
-  _RenderOverlapRow({
+  _RenderOverlapStack({
+    required Axis axis,
     required double overlap,
     required bool expand,
     required CrossAxisAlignment crossAxisAlignment,
     required TextDirection textDirection,
     required int topIndex,
-  })  : _overlap = overlap,
+  })  : _axis = axis,
+        _overlap = overlap,
         _expand = expand,
         _crossAxisAlignment = crossAxisAlignment,
         _textDirection = textDirection,
         _topIndex = topIndex;
 
+  Axis _axis;
   double _overlap;
   bool _expand;
   CrossAxisAlignment _crossAxisAlignment;
   TextDirection _textDirection;
   int _topIndex;
+
+  Axis get axis => _axis;
+  set axis(Axis value) {
+    if (_axis == value) return;
+    _axis = value;
+    markNeedsLayout();
+  }
 
   double get overlap => _overlap;
   set overlap(double value) {
@@ -255,87 +312,174 @@ class _RenderOverlapRow extends RenderBox
       return;
     }
 
-    double maxHeight = 0.0;
-    double totalWidth = 0.0;
+    double maxCrossExtent = 0.0;
+    double totalMainExtent = 0.0;
 
-    final bool canExpand =
-        expand && constraints.hasBoundedWidth;
+    final bool canExpand = axis == Axis.horizontal
+        ? expand && constraints.hasBoundedWidth
+        : expand && constraints.hasBoundedHeight;
 
-    if (canExpand) {
-      final count = children.length;
-      final width = constraints.maxWidth;
-      final childWidth =
-          (width + clampedOverlap * (count - 1)) / count;
-      final childConstraints = BoxConstraints(
-        minWidth: childWidth,
-        maxWidth: childWidth,
-        minHeight: 0,
-        maxHeight: constraints.maxHeight,
-      );
+    if (axis == Axis.horizontal) {
+      if (canExpand) {
+        final count = children.length;
+        final width = constraints.maxWidth;
+        final childWidth =
+            (width + clampedOverlap * (count - 1)) / count;
+        final childConstraints = BoxConstraints(
+          minWidth: childWidth,
+          maxWidth: childWidth,
+          minHeight: 0,
+          maxHeight: constraints.maxHeight,
+        );
 
-      for (final child in children) {
-        child.layout(childConstraints, parentUsesSize: true);
-        maxHeight = math.max(maxHeight, child.size.height);
+        for (final child in children) {
+          child.layout(childConstraints, parentUsesSize: true);
+          maxCrossExtent = math.max(maxCrossExtent, child.size.height);
+        }
+        totalMainExtent = width;
+      } else {
+        final childConstraints = constraints.loosen();
+        for (final child in children) {
+          child.layout(childConstraints, parentUsesSize: true);
+          maxCrossExtent = math.max(maxCrossExtent, child.size.height);
+          totalMainExtent += child.size.width;
+        }
+        totalMainExtent -= clampedOverlap * (children.length - 1);
       }
-      totalWidth = width;
-    } else {
-      final childConstraints = constraints.loosen();
-      for (final child in children) {
-        child.layout(childConstraints, parentUsesSize: true);
-        maxHeight = math.max(maxHeight, child.size.height);
-        totalWidth += child.size.width;
-      }
-      totalWidth -= clampedOverlap * (children.length - 1);
-    }
 
-    size = constraints.constrain(Size(totalWidth, maxHeight));
+      size = constraints.constrain(Size(totalMainExtent, maxCrossExtent));
 
-    if (children.isEmpty) return;
+      if (children.isEmpty) return;
 
-    if (canExpand) {
-      final count = children.length;
-      final childWidth =
-          (totalWidth + clampedOverlap * (count - 1)) / count;
-      double x = _textDirection == TextDirection.rtl
-          ? size.width - childWidth
-          : 0.0;
-      final step = childWidth - clampedOverlap;
+      if (canExpand) {
+        final count = children.length;
+        final childWidth =
+            (totalMainExtent + clampedOverlap * (count - 1)) / count;
+        double x = _textDirection == TextDirection.rtl
+            ? size.width - childWidth
+            : 0.0;
+        final step = childWidth - clampedOverlap;
 
-      for (final child in children) {
-        final childParentData =
-            child.parentData as _OverlapParentData;
-        final y = _crossAxisOffset(size.height, child.size.height);
-        childParentData.offset = Offset(x, y);
-        x += _textDirection == TextDirection.rtl ? -step : step;
-      }
-    } else {
-      double x = _textDirection == TextDirection.rtl
-          ? size.width
-          : 0.0;
-      for (final child in children) {
-        final childParentData =
-            child.parentData as _OverlapParentData;
-        final y = _crossAxisOffset(size.height, child.size.height);
-        if (_textDirection == TextDirection.rtl) {
-          x -= child.size.width;
+        for (final child in children) {
+          final childParentData =
+              child.parentData as _OverlapParentData;
+          final y = _crossAxisOffset(
+            size.height,
+            child.size.height,
+            axis,
+          );
           childParentData.offset = Offset(x, y);
-          x += clampedOverlap;
-        } else {
+          x += _textDirection == TextDirection.rtl ? -step : step;
+        }
+      } else {
+        double x = _textDirection == TextDirection.rtl
+            ? size.width
+            : 0.0;
+        for (final child in children) {
+          final childParentData =
+              child.parentData as _OverlapParentData;
+          final y = _crossAxisOffset(
+            size.height,
+            child.size.height,
+            axis,
+          );
+          if (_textDirection == TextDirection.rtl) {
+            x -= child.size.width;
+            childParentData.offset = Offset(x, y);
+            x += clampedOverlap;
+          } else {
+            childParentData.offset = Offset(x, y);
+            x += child.size.width - clampedOverlap;
+          }
+        }
+      }
+    } else {
+      if (canExpand) {
+        final count = children.length;
+        final height = constraints.maxHeight;
+        final childHeight =
+            (height + clampedOverlap * (count - 1)) / count;
+        final childConstraints = BoxConstraints(
+          minWidth: 0,
+          maxWidth: constraints.maxWidth,
+          minHeight: childHeight,
+          maxHeight: childHeight,
+        );
+
+        for (final child in children) {
+          child.layout(childConstraints, parentUsesSize: true);
+          maxCrossExtent = math.max(maxCrossExtent, child.size.width);
+        }
+        totalMainExtent = height;
+      } else {
+        final childConstraints = constraints.loosen();
+        for (final child in children) {
+          child.layout(childConstraints, parentUsesSize: true);
+          maxCrossExtent = math.max(maxCrossExtent, child.size.width);
+          totalMainExtent += child.size.height;
+        }
+        totalMainExtent -= clampedOverlap * (children.length - 1);
+      }
+
+      size = constraints.constrain(Size(maxCrossExtent, totalMainExtent));
+
+      if (children.isEmpty) return;
+
+      if (canExpand) {
+        final count = children.length;
+        final childHeight =
+            (totalMainExtent + clampedOverlap * (count - 1)) / count;
+        double y = 0.0;
+        final step = childHeight - clampedOverlap;
+
+        for (final child in children) {
+          final childParentData =
+              child.parentData as _OverlapParentData;
+          final x = _crossAxisOffset(
+            size.width,
+            child.size.width,
+            axis,
+          );
           childParentData.offset = Offset(x, y);
-          x += child.size.width - clampedOverlap;
+          y += step;
+        }
+      } else {
+        double y = 0.0;
+        for (final child in children) {
+          final childParentData =
+              child.parentData as _OverlapParentData;
+          final x = _crossAxisOffset(
+            size.width,
+            child.size.width,
+            axis,
+          );
+          childParentData.offset = Offset(x, y);
+          y += child.size.height - clampedOverlap;
         }
       }
     }
   }
 
-  double _crossAxisOffset(double height, double childHeight) {
+  double _crossAxisOffset(
+    double crossExtent,
+    double childExtent,
+    Axis axis,
+  ) {
     switch (crossAxisAlignment) {
       case CrossAxisAlignment.start:
+        if (axis == Axis.vertical &&
+            _textDirection == TextDirection.rtl) {
+          return crossExtent - childExtent;
+        }
         return 0.0;
       case CrossAxisAlignment.center:
-        return (height - childHeight) / 2;
+        return (crossExtent - childExtent) / 2;
       case CrossAxisAlignment.end:
-        return height - childHeight;
+        if (axis == Axis.vertical &&
+            _textDirection == TextDirection.rtl) {
+          return 0.0;
+        }
+        return crossExtent - childExtent;
       case CrossAxisAlignment.stretch:
       case CrossAxisAlignment.baseline:
         return 0.0;

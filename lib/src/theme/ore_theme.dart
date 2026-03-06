@@ -97,7 +97,7 @@ class OreColors {
 
   factory OreColors.light() {
     return const OreColors(
-      background: Color(0xFFE7E8EA),
+      background: Color(0xFFE6E6E6),
       surface: Color(0xFFF7F8FA),
       surfaceHover: Color(0xFFE3E6EA),
       surfacePressed: Color(0xFFD6D9DE),

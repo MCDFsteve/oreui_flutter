@@ -125,24 +125,26 @@ class _OrePixelIconState extends State<OrePixelIcon> {
   Widget build(BuildContext context) {
     final theme = IconTheme.of(context);
     final size = widget.size ?? theme.size ?? 16;
-    final iconColor = widget.color ?? theme.color;
-
-    return SizedBox(
-      width: size,
-      height: size,
-      child: _pngBytes == null
-          ? const SizedBox.shrink()
-          : _PixelSnap(
-              child: Image.memory(
-                _pngBytes!,
-                width: size,
-                height: size,
-                fit: BoxFit.fill,
-                filterQuality: FilterQuality.none,
-                isAntiAlias: false,
-                gaplessPlayback: true,
-              ),
+    final image = _pngBytes == null
+        ? SizedBox(width: size, height: size)
+        : _PixelSnap(
+            child: Image.memory(
+              _pngBytes!,
+              width: size,
+              height: size,
+              fit: BoxFit.none,
+              alignment: Alignment.center,
+              filterQuality: FilterQuality.none,
+              isAntiAlias: false,
+              gaplessPlayback: true,
             ),
+          );
+
+    return Align(
+      alignment: Alignment.center,
+      widthFactor: 1,
+      heightFactor: 1,
+      child: image,
     );
   }
 

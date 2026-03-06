@@ -23,6 +23,7 @@ class OreButton extends StatefulWidget {
     this.leading,
     this.trailing,
     this.fullWidth = false,
+    this.width,
     this.autofocus = false,
     this.focusNode,
     this.forcePressed = false,
@@ -38,6 +39,7 @@ class OreButton extends StatefulWidget {
   final Widget? leading;
   final Widget? trailing;
   final bool fullWidth;
+  final double? width;
   final bool autofocus;
   final FocusNode? focusNode;
   final bool forcePressed;
@@ -116,7 +118,10 @@ class _OreButtonState extends State<OreButton> {
     final pressedCut = isPressed ? visualDepth : 0.0;
     final pressedHeight =
         (height - pressedCut).clamp(0.0, height);
-    final widthFactor = widget.fullWidth ? null : 1.0;
+    final widthFactor =
+        (widget.width == null && !widget.fullWidth) ? 1.0 : null;
+    final innerWidth =
+        (widget.width != null || widget.fullWidth) ? double.infinity : null;
 
     Widget buttonBody = SizedBox(
       height: height,
@@ -124,13 +129,16 @@ class _OreButtonState extends State<OreButton> {
         alignment: Alignment.bottomCenter,
         widthFactor: widthFactor,
         child: SizedBox(
+          width: innerWidth,
           height: pressedHeight,
           child: surface,
         ),
       ),
     );
 
-    if (widget.fullWidth) {
+    if (widget.width != null) {
+      buttonBody = SizedBox(width: widget.width, child: buttonBody);
+    } else if (widget.fullWidth) {
       buttonBody = SizedBox(width: double.infinity, child: buttonBody);
     }
 

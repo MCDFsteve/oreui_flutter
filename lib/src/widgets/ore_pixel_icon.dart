@@ -70,10 +70,25 @@ class _OrePixelIconState extends State<OrePixelIcon> {
 
   Future<void> _capture() async {
     _captureScheduled = false;
-    final boundary =
+    var boundary =
         _boundaryKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
     if (boundary == null || !boundary.hasSize) return;
-    final image = await boundary.toImage(pixelRatio: 1.0);
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+    boundary =
+        _boundaryKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+    if (boundary == null || !boundary.hasSize) return;
+    if (boundary.debugNeedsPaint) {
+      _scheduleCapture();
+      return;
+    }
+    ui.Image image;
+    try {
+      image = await boundary.toImage(pixelRatio: 1.0);
+    } catch (_) {
+      _scheduleCapture();
+      return;
+    }
     if (!mounted) {
       image.dispose();
       return;
@@ -107,21 +122,29 @@ class _OrePixelIconState extends State<OrePixelIcon> {
               filterQuality: FilterQuality.none,
             )
           else
-            SizedBox(width: size, height: size),
+            Icon(
+              widget.icon,
+              size: size,
+              color: iconColor,
+              semanticLabel: widget.semanticLabel,
+              textDirection: widget.textDirection,
+            ),
           Opacity(
-            opacity: 0,
-            child: RepaintBoundary(
-              key: _boundaryKey,
-              child: SizedBox(
-                width: rasterSize,
-                height: rasterSize,
-                child: Center(
-                  child: Icon(
-                    widget.icon,
-                    size: rasterSize,
-                    color: iconColor,
-                    semanticLabel: widget.semanticLabel,
-                    textDirection: widget.textDirection,
+            opacity: 0.01,
+            child: IgnorePointer(
+              child: RepaintBoundary(
+                key: _boundaryKey,
+                child: SizedBox(
+                  width: rasterSize,
+                  height: rasterSize,
+                  child: Center(
+                    child: Icon(
+                      widget.icon,
+                      size: rasterSize,
+                      color: iconColor,
+                      semanticLabel: widget.semanticLabel,
+                      textDirection: widget.textDirection,
+                    ),
                   ),
                 ),
               ),

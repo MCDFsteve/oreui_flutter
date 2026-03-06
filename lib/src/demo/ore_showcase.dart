@@ -67,6 +67,9 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
   String _dropdownValue = '选项一';
   final TextEditingController _controller =
       TextEditingController(text: 'Ore UI');
+  final TextEditingController _buttonWidthController =
+      TextEditingController(text: '40');
+  double? _buttonWidthUnits = 40;
 
   static const List<OreDropdownItem<String>> _dropdownItems = [
     OreDropdownItem(value: '选项一', child: Text('选项一')),
@@ -115,13 +118,28 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
   @override
   void dispose() {
     _controller.dispose();
+    _buttonWidthController.dispose();
     super.dispose();
+  }
+
+  void _updateButtonWidth(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      setState(() => _buttonWidthUnits = null);
+      return;
+    }
+    final parsed = double.tryParse(trimmed);
+    if (parsed == null) return;
+    setState(() => _buttonWidthUnits = parsed);
   }
 
   @override
   Widget build(BuildContext context) {
     final ore = OreTheme.of(context);
     final colors = ore.colors;
+    final buttonWidth = _buttonWidthUnits == null
+        ? null
+        : _buttonWidthUnits! * ore.borderWidth;
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -203,6 +221,30 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
                               onPressed: () {},
                               leading: const Icon(Icons.add, size: 16),
                               child: const Text('创建'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: OreTokens.gapMd),
+                        Text('Fixed Width', style: ore.typography.label),
+                        const SizedBox(height: OreTokens.gapSm),
+                        Wrap(
+                          spacing: OreTokens.gapSm,
+                          runSpacing: OreTokens.gapSm,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            OreButton(
+                              width: buttonWidth,
+                              onPressed: () {},
+                              child: const Text('固定宽度'),
+                            ),
+                            SizedBox(
+                              width: OreTokens.controlHeightMd * 2,
+                              child: OreTextField(
+                                controller: _buttonWidthController,
+                                hintText: '宽度(单位)',
+                                keyboardType: TextInputType.number,
+                                onChanged: _updateButtonWidth,
+                              ),
                             ),
                           ],
                         ),

@@ -16,6 +16,7 @@ class OreChoiceButtons extends StatelessWidget {
     required this.onChanged,
     this.size = OreButtonSize.md,
     this.fullWidth = false,
+    this.buttonWidth,
   });
 
   final List<Widget> items;
@@ -23,6 +24,7 @@ class OreChoiceButtons extends StatelessWidget {
   final ValueChanged<int>? onChanged;
   final OreButtonSize size;
   final bool fullWidth;
+  final double? buttonWidth;
 
   bool get _enabled => onChanged != null;
 
@@ -45,6 +47,7 @@ class OreChoiceButtons extends StatelessWidget {
             selected ? OreButtonVariant.primary : OreButtonVariant.secondary,
         forcePressed: selected,
         forcePressedKeepsColor: selected,
+        width: buttonWidth,
         child: items[index],
       );
       final decorated = Stack(
@@ -76,7 +79,7 @@ class OreChoiceButtons extends StatelessWidget {
 
     return _OverlapRow(
       overlap: overlap,
-      expand: fullWidth,
+      expand: fullWidth && buttonWidth == null,
       crossAxisAlignment: CrossAxisAlignment.end,
       textDirection: Directionality.of(context),
       topIndex: selectedIndex,

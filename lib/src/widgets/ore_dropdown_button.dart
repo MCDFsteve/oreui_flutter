@@ -45,31 +45,45 @@ class OreDropdownButton<T> extends StatefulWidget {
 class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
   bool _hovered = false;
   bool _pressed = false;
+  bool _menuOpen = false;
 
   bool get _enabled => widget.onChanged != null && widget.items.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
     final theme = OreTheme.of(context);
-    final colors = resolveControlColors(context, theme.colors);
+    final themeColors = theme.colors;
+    final colors = resolveControlColors(context, themeColors);
     final isPressed = _pressed && _enabled;
     final isHovered = _hovered && _enabled;
-    final config = _resolveColors(colors, isHovered, isPressed, _enabled);
+    final baseConfig =
+        _resolveColors(colors, isHovered, isPressed, _enabled);
+    final config = _menuOpen
+        ? _DropdownColors(
+            background: themeColors.background,
+            borderColor: themeColors.border,
+            shadowColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            textColor: themeColors.textPrimary,
+          )
+        : baseConfig;
     final height = _height(widget.size);
     final padding = _padding(widget.size, theme.borderWidth);
 
-    final visualDepth = theme.bevelDepth;
-    final shadowDepth = isPressed ? 0.0 : visualDepth;
-    final highlightDepth =
-        (visualDepth - 1).clamp(0.0, visualDepth).toDouble();
-    final contentOffsetY = isPressed ? 0.0 : -visualDepth / 2;
+    final visualDepth = _menuOpen ? 0.0 : theme.bevelDepth;
+    final shadowDepth = (isPressed || _menuOpen) ? 0.0 : visualDepth;
+    final highlightDepth = _menuOpen
+        ? 0.0
+        : (visualDepth - 1).clamp(0.0, visualDepth).toDouble();
+    final contentOffsetY =
+        (isPressed || _menuOpen) ? 0.0 : -visualDepth / 2;
 
     final display = _selectedChild() ?? widget.hint ?? const SizedBox.shrink();
     final labelStyle = theme.typography.label.copyWith(
       color: config.textColor,
     );
     final arrow = Icon(
-      Icons.keyboard_arrow_down,
+      _menuOpen ? Icons.check : Icons.keyboard_arrow_down,
       size: 18,
       color: config.textColor,
     );
@@ -174,6 +188,8 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
 
   Future<void> _openMenu() async {
     _setPressed(false);
+    final theme = OreTheme.of(context);
+    final surfaceColors = theme.colors;
     final overlay = Overlay.of(context);
     if (overlay == null) return;
     final buttonBox = context.findRenderObject() as RenderBox?;
@@ -189,47 +205,104 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
       buttonBox.size.width,
       buttonBox.size.height,
     );
-    final position = RelativeRect.fromRect(
-      Rect.fromLTWH(
-        buttonRect.left,
-        buttonRect.bottom,
-        buttonRect.width,
-        0,
-      ),
-      Offset.zero & overlayBox.size,
+    final overlaySize = overlayBox.size;
+    final itemHeight = _height(widget.size);
+    final overlap = theme.borderWidth;
+    final menuHeight = _menuHeight(
+      widget.items.length,
+      itemHeight,
+      overlap,
+    );
+    final menuWidth = buttonRect.width;
+    final left = _clampHorizontal(
+      buttonRect.left,
+      menuWidth,
+      overlaySize.width,
+    );
+    final top = _resolveVerticalPosition(
+      buttonRect,
+      menuHeight,
+      overlaySize.height,
+      overlap,
     );
 
-    final selected = await showMenu<T>(
-      context: context,
-      position: position,
-      items: _buildMenuItems(buttonRect.width),
-    );
-    if (selected != null) {
-      widget.onChanged?.call(selected);
+    setState(() => _menuOpen = true);
+    try {
+      final selected = await showGeneralDialog<T>(
+        context: context,
+        barrierDismissible: true,
+        barrierLabel:
+            MaterialLocalizations.of(context).modalBarrierDismissLabel,
+        barrierColor: Colors.transparent,
+        transitionDuration: OreTokens.fast,
+        pageBuilder: (context, _, __) {
+          return Material(
+            type: MaterialType.transparency,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onTap: () => Navigator.of(context).pop(),
+                  ),
+                ),
+                Positioned(
+                  left: left,
+                  top: top,
+                  width: menuWidth,
+                  child: _DropdownMenuPanel<T>(
+                    width: menuWidth,
+                    itemHeight: itemHeight,
+                    overlap: overlap,
+                    padding: _padding(widget.size, theme.borderWidth),
+                    items: widget.items,
+                    colors: surfaceColors,
+                    textStyle:
+                        theme.typography.body.copyWith(color: surfaceColors.textPrimary),
+                    onSelected: (value) =>
+                        Navigator.of(context).pop(value),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+        transitionBuilder: (context, animation, _, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      );
+      if (selected != null) {
+        widget.onChanged?.call(selected);
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _menuOpen = false);
+      }
     }
   }
 
-  List<PopupMenuEntry<T>> _buildMenuItems(double width) {
-    final theme = OreTheme.of(context);
-    final colors = resolveControlColors(context, theme.colors);
-    final style = theme.typography.body.copyWith(color: colors.textPrimary);
-    return widget.items
-        .map(
-          (item) => PopupMenuItem<T>(
-            value: item.value,
-            child: SizedBox(
-              width: width,
-              child: DefaultTextStyle.merge(
-                style: style,
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: item.child,
-                ),
-              ),
-            ),
-          ),
-        )
-        .toList();
+  double _menuHeight(int count, double itemHeight, double overlap) {
+    if (count <= 0) return 0;
+    return itemHeight * count - overlap * (count - 1);
+  }
+
+  double _clampHorizontal(double left, double width, double maxWidth) {
+    if (maxWidth <= 0) return 0;
+    final maxLeft = (maxWidth - width).clamp(0.0, maxWidth);
+    return left.clamp(0.0, maxLeft);
+  }
+
+  double _resolveVerticalPosition(
+    Rect buttonRect,
+    double menuHeight,
+    double maxHeight,
+    double overlap,
+  ) {
+    final below = buttonRect.bottom + menuHeight - overlap;
+    if (below <= maxHeight) return buttonRect.bottom - overlap;
+    final above = buttonRect.top - menuHeight + overlap;
+    if (above >= 0) return above;
+    return (maxHeight - menuHeight).clamp(0.0, maxHeight);
   }
 
   double _height(OreButtonSize size) {
@@ -366,4 +439,108 @@ class _DropdownColors {
   final Color shadowColor;
   final Color highlightColor;
   final Color textColor;
+}
+
+class _DropdownMenuPanel<T> extends StatelessWidget {
+  const _DropdownMenuPanel({
+    required this.width,
+    required this.itemHeight,
+    required this.overlap,
+    required this.padding,
+    required this.items,
+    required this.colors,
+    required this.textStyle,
+    required this.onSelected,
+  });
+
+  final double width;
+  final double itemHeight;
+  final double overlap;
+  final EdgeInsetsGeometry padding;
+  final List<OreDropdownItem<T>> items;
+  final OreColors colors;
+  final TextStyle textStyle;
+  final ValueChanged<T> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final totalHeight = items.isEmpty
+        ? 0.0
+        : itemHeight * items.length - overlap * (items.length - 1);
+    final itemBackground =
+        Color.lerp(colors.background, colors.surface, 0.15) ??
+            colors.background;
+
+    return SizedBox(
+      width: width,
+      height: totalHeight,
+      child: Stack(
+        children: [
+          for (var i = 0; i < items.length; i++)
+            Positioned(
+              left: 0,
+              right: 0,
+              top: i * (itemHeight - overlap),
+              height: itemHeight,
+              child: _DropdownMenuItem<T>(
+                item: items[i],
+                textStyle: textStyle,
+                background: itemBackground,
+                borderColor: colors.border,
+                borderWidth: OreTheme.of(context).borderWidth,
+                padding: padding,
+                onSelected: onSelected,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DropdownMenuItem<T> extends StatelessWidget {
+  const _DropdownMenuItem({
+    required this.item,
+    required this.textStyle,
+    required this.background,
+    required this.borderColor,
+    required this.borderWidth,
+    required this.padding,
+    required this.onSelected,
+  });
+
+  final OreDropdownItem<T> item;
+  final TextStyle textStyle;
+  final Color background;
+  final Color borderColor;
+  final double borderWidth;
+  final EdgeInsetsGeometry padding;
+  final ValueChanged<T> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => onSelected(item.value),
+        child: DefaultTextStyle.merge(
+          style: textStyle,
+          child: OreSurface(
+            color: background,
+            borderColor: borderColor,
+            highlightColor: Colors.transparent,
+            shadowColor: Colors.transparent,
+            borderWidth: borderWidth,
+            depth: 0,
+            highlightDepth: 0,
+            shadowDepth: 0,
+            alignment: Alignment.centerLeft,
+            padding: padding,
+            child: item.child,
+          ),
+        ),
+      ),
+    );
+  }
 }

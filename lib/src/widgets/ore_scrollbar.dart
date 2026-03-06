@@ -361,13 +361,7 @@ class _ScrollbarBar extends StatelessWidget {
     final visualDepth = unit * 2;
     final highlightDepth = unit;
     final shadowDepth = isPressed ? 0.0 : visualDepth;
-    final background = _pick(
-      colors.surface,
-      colors.surfaceHover,
-      colors.surfacePressed,
-      isHovered,
-      isPressed,
-    );
+    final background = isHovered ? colors.surfaceHover : colors.surface;
     final highlightColor = OreHighlight.resolve(
       colors: colors,
       colored: false,

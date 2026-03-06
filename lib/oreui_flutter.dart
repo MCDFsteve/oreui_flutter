@@ -16,6 +16,7 @@ export 'src/widgets/ore_shadow.dart';
 export 'src/widgets/ore_strip.dart';
 export 'src/widgets/ore_slider.dart';
 export 'src/widgets/ore_scrollbar.dart';
+export 'src/widgets/ore_surface.dart';
 export 'src/widgets/ore_switch.dart';
 export 'src/widgets/ore_theme_mode_switch.dart';
 export 'src/widgets/ore_text_field.dart';

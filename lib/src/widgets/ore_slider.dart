@@ -134,6 +134,7 @@ class OreSliderTrackShape extends SliderTrackShape {
         isEnabled ? colors.accent : colors.surfaceHover;
     final borderColor = isEnabled ? colors.border : colors.borderLight;
     final trackHighlight = OreHighlight.muted(colors: colors);
+    const trackCornerHighlightFactor = 0.08;
 
     final inactivePaint = Paint()
       ..color = inactiveColor
@@ -163,6 +164,7 @@ class OreSliderTrackShape extends SliderTrackShape {
       highlightDepth: highlightDepth,
       shadowDepth: shadowDepth,
       paintFill: false,
+      cornerHighlightFactor: trackCornerHighlightFactor,
     );
   }
 }

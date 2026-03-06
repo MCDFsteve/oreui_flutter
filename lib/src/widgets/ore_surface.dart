@@ -22,6 +22,7 @@ class OreSurface extends StatelessWidget {
     this.pressed = false,
     this.ignoreShadowPadding = false,
     this.shadowOnTop = false,
+    this.cornerHighlightFactor = 0.2,
   });
 
   final Widget child;
@@ -39,6 +40,7 @@ class OreSurface extends StatelessWidget {
   final bool pressed;
   final bool ignoreShadowPadding;
   final bool shadowOnTop;
+  final double cornerHighlightFactor;
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +50,8 @@ class OreSurface extends StatelessWidget {
     final shadow = shouldSwap ? highlightColor : shadowColor;
     final cornerHighlight = highlight.alpha == 0
         ? highlight
-        : Color.lerp(highlight, const Color(0xFFFFFFFF), 0.08)!;
+        : Color.lerp(
+            highlight, const Color(0xFFFFFFFF), cornerHighlightFactor)!;
     final resolvedHighlightDepth =
         math.max(0.0, highlightDepth ?? depth);
     final resolvedShadowDepth =

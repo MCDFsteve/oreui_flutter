@@ -12,9 +12,11 @@ class OreHighlight {
     required bool hovered,
   }) {
     if (colored) {
-      return mutedColored();
+      return hovered
+          ? OreTokens.coloredHighlightStrong
+          : OreTokens.coloredHighlight;
     }
-    return muted(colors: colors);
+    return hovered ? colors.highlightStrong : colors.highlight;
   }
 
   static Color muted({

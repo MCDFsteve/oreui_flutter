@@ -168,12 +168,9 @@ class _OreSwitchState extends State<OreSwitch>
         : colors.surface;
     final iconBoxWidth = metrics.iconBoxWidth;
     final trackHighlight = isOn
-        ? OreHighlight.resolve(
-            colors: colors,
-            colored: true,
-            hovered: false,
-          )
+        ? OreHighlight.mutedColored()
         : OreHighlight.muted(colors: colors);
+    const trackCornerHighlightFactor = 0.08;
     final knobHighlight = OreHighlight.resolve(
       colors: colors,
       colored: false,
@@ -196,6 +193,7 @@ class _OreSwitchState extends State<OreSwitch>
         pressed: false,
         padding: EdgeInsets.zero,
         alignment: Alignment.center,
+        cornerHighlightFactor: trackCornerHighlightFactor,
         child: Stack(
           clipBehavior: Clip.none,
           children: [

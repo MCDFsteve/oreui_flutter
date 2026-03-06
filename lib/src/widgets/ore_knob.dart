@@ -58,6 +58,7 @@ class OreKnobPainter extends CustomPainter {
     required this.shadowDepth,
     this.swapHighlightOnPressed = false,
     this.pressed = false,
+    this.cornerHighlightFactor = 0.2,
   });
 
   final Color color;
@@ -70,6 +71,7 @@ class OreKnobPainter extends CustomPainter {
   final double shadowDepth;
   final bool swapHighlightOnPressed;
   final bool pressed;
+  final double cornerHighlightFactor;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -86,6 +88,7 @@ class OreKnobPainter extends CustomPainter {
       shadowDepth: shadowDepth,
       swapHighlightOnPressed: swapHighlightOnPressed,
       pressed: pressed,
+      cornerHighlightFactor: cornerHighlightFactor,
     );
   }
 
@@ -100,7 +103,8 @@ class OreKnobPainter extends CustomPainter {
         highlightDepth != oldDelegate.highlightDepth ||
         shadowDepth != oldDelegate.shadowDepth ||
         swapHighlightOnPressed != oldDelegate.swapHighlightOnPressed ||
-        pressed != oldDelegate.pressed;
+        pressed != oldDelegate.pressed ||
+        cornerHighlightFactor != oldDelegate.cornerHighlightFactor;
   }
 
   static void paintBevel({
@@ -117,6 +121,7 @@ class OreKnobPainter extends CustomPainter {
     double? shadowDepth,
     bool swapHighlightOnPressed = false,
     bool pressed = false,
+    double cornerHighlightFactor = 0.2,
   }) {
     if (rect.isEmpty) return;
 
@@ -125,7 +130,8 @@ class OreKnobPainter extends CustomPainter {
     final shadow = shouldSwap ? highlightColor : shadowColor;
     final cornerHighlight = highlight.alpha == 0
         ? highlight
-        : Color.lerp(highlight, const Color(0xFFFFFFFF), 0.08)!;
+        : Color.lerp(
+            highlight, const Color(0xFFFFFFFF), cornerHighlightFactor)!;
     final resolvedHighlightDepth =
         (highlightDepth ?? depth).clamp(0.0, 8.0).toDouble();
     final resolvedShadowDepth =

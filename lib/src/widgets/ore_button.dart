@@ -23,6 +23,8 @@ class OreButton extends StatefulWidget {
     this.fullWidth = false,
     this.autofocus = false,
     this.focusNode,
+    this.forcePressed = false,
+    this.forcePressedKeepsColor = false,
   });
 
   final Widget child;
@@ -36,6 +38,8 @@ class OreButton extends StatefulWidget {
   final bool fullWidth;
   final bool autofocus;
   final FocusNode? focusNode;
+  final bool forcePressed;
+  final bool forcePressedKeepsColor;
 
   @override
   State<OreButton> createState() => _OreButtonState();
@@ -51,10 +55,14 @@ class _OreButtonState extends State<OreButton> {
   Widget build(BuildContext context) {
     final theme = OreTheme.of(context);
     final colors = theme.colors;
-    final isPressed = _pressed && _enabled;
+    final isPressed = (_pressed && _enabled) || widget.forcePressed;
+    final colorPressed = (_pressed && _enabled) ||
+        (widget.forcePressed && !widget.forcePressedKeepsColor);
     final isHovered = _hovered && _enabled;
+    final styleEnabled = _enabled || widget.forcePressed;
 
-    final config = _resolveColors(colors, isHovered, isPressed, _enabled);
+    final config =
+        _resolveColors(colors, isHovered, colorPressed, styleEnabled);
     final height = _height(widget.size);
     final padding = _padding(widget.size, theme.borderWidth);
 

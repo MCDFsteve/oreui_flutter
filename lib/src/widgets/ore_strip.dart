@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 import '../theme/ore_theme.dart';
 
@@ -31,14 +31,17 @@ class OreStrip extends StatelessWidget {
     final theme = OreTheme.of(context);
     final colors = theme.colors;
     final stroke = theme.borderWidth;
+    final isLight = Theme.of(context).brightness == Brightness.light;
 
     final resolvedPadding = padding ?? EdgeInsets.zero;
     final resolvedColor = color ??
         (tone == OreStripTone.dark ? colors.background : colors.surface);
     final resolvedHighlight = highlightColor ??
-        (tone == OreStripTone.dark
-            ? colors.highlight.withOpacity(0.14)
-            : colors.highlight);
+        (isLight
+            ? colors.highlight.withOpacity(1)
+            : (tone == OreStripTone.dark
+                ? colors.highlight.withOpacity(0.14)
+                : colors.highlight));
     final resolvedShadow = shadowColor ??
         (tone == OreStripTone.dark
             ? colors.border.withOpacity(0.5)

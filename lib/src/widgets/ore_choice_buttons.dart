@@ -33,7 +33,7 @@ class OreChoiceButtons extends StatelessWidget {
     final borderWidth = theme.borderWidth;
     final indicatorHeight =
         borderWidth * OreTokens.choiceIndicatorHeightUnits;
-    final overlap = borderWidth * 2;
+    final overlap = borderWidth;
 
     final children = List.generate(items.length, (index) {
       final selected = index == selectedIndex;
@@ -79,6 +79,7 @@ class OreChoiceButtons extends StatelessWidget {
       expand: fullWidth,
       crossAxisAlignment: CrossAxisAlignment.end,
       textDirection: Directionality.of(context),
+      topIndex: selectedIndex,
       children: children,
     );
   }
@@ -90,6 +91,7 @@ class _OverlapRow extends MultiChildRenderObjectWidget {
     required this.expand,
     required this.crossAxisAlignment,
     required this.textDirection,
+    required this.topIndex,
     required super.children,
   });
 
@@ -97,6 +99,7 @@ class _OverlapRow extends MultiChildRenderObjectWidget {
   final bool expand;
   final CrossAxisAlignment crossAxisAlignment;
   final TextDirection textDirection;
+  final int topIndex;
 
   @override
   RenderObject createRenderObject(BuildContext context) {
@@ -105,6 +108,7 @@ class _OverlapRow extends MultiChildRenderObjectWidget {
       expand: expand,
       crossAxisAlignment: crossAxisAlignment,
       textDirection: textDirection,
+      topIndex: topIndex,
     );
   }
 
@@ -117,7 +121,8 @@ class _OverlapRow extends MultiChildRenderObjectWidget {
       ..overlap = overlap
       ..expand = expand
       ..crossAxisAlignment = crossAxisAlignment
-      ..textDirection = textDirection;
+      ..textDirection = textDirection
+      ..topIndex = topIndex;
   }
 }
 
@@ -132,15 +137,18 @@ class _RenderOverlapRow extends RenderBox
     required bool expand,
     required CrossAxisAlignment crossAxisAlignment,
     required TextDirection textDirection,
+    required int topIndex,
   })  : _overlap = overlap,
         _expand = expand,
         _crossAxisAlignment = crossAxisAlignment,
-        _textDirection = textDirection;
+        _textDirection = textDirection,
+        _topIndex = topIndex;
 
   double _overlap;
   bool _expand;
   CrossAxisAlignment _crossAxisAlignment;
   TextDirection _textDirection;
+  int _topIndex;
 
   double get overlap => _overlap;
   set overlap(double value) {
@@ -170,6 +178,13 @@ class _RenderOverlapRow extends RenderBox
     markNeedsLayout();
   }
 
+  int get topIndex => _topIndex;
+  set topIndex(int value) {
+    if (_topIndex == value) return;
+    _topIndex = value;
+    markNeedsPaint();
+  }
+
   @override
   void setupParentData(RenderBox child) {
     if (child.parentData is! _OverlapParentData) {
@@ -179,13 +194,53 @@ class _RenderOverlapRow extends RenderBox
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    defaultPaint(context, offset);
+    final children = getChildrenAsList();
+    if (children.isEmpty ||
+        topIndex < 0 ||
+        topIndex >= children.length) {
+      defaultPaint(context, offset);
+      return;
+    }
+
+    for (var i = 0; i < children.length; i++) {
+      if (i == topIndex) continue;
+      final child = children[i];
+      final childParentData = child.parentData as _OverlapParentData;
+      context.paintChild(child, offset + childParentData.offset);
+    }
+
+    final topChild = children[topIndex];
+    final topParentData = topChild.parentData as _OverlapParentData;
+    context.paintChild(topChild, offset + topParentData.offset);
   }
 
   @override
   bool hitTestChildren(BoxHitTestResult result,
       {required Offset position}) {
-    return defaultHitTestChildren(result, position: position);
+    final children = getChildrenAsList();
+    if (children.isEmpty) return false;
+
+    bool hitChild(RenderBox child) {
+      final childParentData = child.parentData as _OverlapParentData;
+      return result.addWithPaintOffset(
+        offset: childParentData.offset,
+        position: position,
+        hitTest: (result, transformed) {
+          return child.hitTest(result, position: transformed);
+        },
+      );
+    }
+
+    if (topIndex >= 0 && topIndex < children.length) {
+      if (hitChild(children[topIndex])) return true;
+    }
+
+    for (var i = children.length - 1; i >= 0; i--) {
+      if (i == topIndex) continue;
+      if (hitChild(children[i])) return true;
+    }
+
+    return false;
   }
 
   @override

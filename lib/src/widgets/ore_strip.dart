@@ -43,9 +43,11 @@ class OreStrip extends StatelessWidget {
                 ? colors.highlight.withOpacity(0.14)
                 : colors.highlight));
     final resolvedShadow = shadowColor ??
-        (tone == OreStripTone.dark
-            ? colors.border.withOpacity(0.5)
-            : colors.shadow);
+        (isLight
+            ? colors.shadow.withOpacity(0.45)
+            : (tone == OreStripTone.dark
+                ? colors.border.withOpacity(0.5)
+                : colors.shadow));
 
     Widget body = Container(
       width: double.infinity,

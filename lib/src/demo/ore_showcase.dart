@@ -10,6 +10,7 @@ import '../widgets/ore_choice_title.dart';
 import '../widgets/ore_divider.dart';
 import '../widgets/ore_dropdown_button.dart';
 import '../widgets/ore_strip.dart';
+import '../widgets/ore_pixel_icon.dart';
 import '../widgets/ore_slider.dart';
 import '../widgets/ore_switch.dart';
 import '../widgets/ore_theme_mode_switch.dart';
@@ -77,6 +78,32 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
     Text('简单'),
     Text('一般'),
     Text('困难'),
+  ];
+  static const List<Widget> _choiceItems = [
+    Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        OrePixelIcon(icon: Icons.public, size: 16),
+        SizedBox(width: OreTokens.gapXs),
+        Text('选项一'),
+      ],
+    ),
+    Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        OrePixelIcon(icon: Icons.explore, size: 16),
+        SizedBox(width: OreTokens.gapXs),
+        Text('选项二'),
+      ],
+    ),
+    Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        OrePixelIcon(icon: Icons.extension, size: 16),
+        SizedBox(width: OreTokens.gapXs),
+        Text('选项三'),
+      ],
+    ),
   ];
   static const List<Widget> _difficultyDescriptions = [
     Text('没有敌对生物，只会生成一些中立生物。饥饿条不会消耗，且生命值会随时间回复。'),
@@ -158,6 +185,27 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
                             ),
                           ],
                         ),
+                        const SizedBox(height: OreTokens.gapMd),
+                        Text('Icon Buttons', style: ore.typography.label),
+                        const SizedBox(height: OreTokens.gapSm),
+                        Wrap(
+                          spacing: OreTokens.gapSm,
+                          runSpacing: OreTokens.gapSm,
+                          children: [
+                            OreButton(
+                              onPressed: () {},
+                              leading:
+                                  const Icon(Icons.star, size: 16),
+                              child: const Text('收藏'),
+                            ),
+                            OreButton(
+                              variant: OreButtonVariant.primary,
+                              onPressed: () {},
+                              leading: const Icon(Icons.add, size: 16),
+                              child: const Text('创建'),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -221,11 +269,7 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             OreChoiceButtons(
-                              items: const [
-                                Text('选项一'),
-                                Text('选项二'),
-                                Text('选项三'),
-                              ],
+                              items: _choiceItems,
                               selectedIndex: _choice,
                               onChanged: (value) =>
                                   setState(() => _choice = value),
@@ -249,24 +293,6 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              OreStrip(
-                child: Padding(
-                  padding: const EdgeInsets.all(OreTokens.gapLg),
-                  child: DefaultTextStyle.merge(
-                    style: ore.typography.body.copyWith(
-                      color: colors.textPrimary,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const OreDivider(),
-                        const SizedBox(height: OreTokens.gapSm),
-                        Text('Minecraft 风格的基础控件集合演示。'),
                       ],
                     ),
                   ),

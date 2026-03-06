@@ -4,6 +4,7 @@ import '../theme/ore_control_colors.dart';
 import '../theme/ore_highlight.dart';
 import '../theme/ore_theme.dart';
 import '../theme/ore_tokens.dart';
+import 'ore_pixel_icon.dart';
 import 'ore_surface.dart';
 
 enum OreButtonVariant { primary, secondary, ghost, danger }
@@ -57,9 +58,12 @@ class _OreButtonState extends State<OreButton> {
     final theme = OreTheme.of(context);
     final colors = resolveControlColors(context, theme.colors);
     final isPressed = (_pressed && _enabled) || widget.forcePressed;
-    final colorPressed = (_pressed && _enabled) ||
+    final colorPressed =
+        (_pressed && _enabled && !(widget.forcePressed && widget.forcePressedKeepsColor)) ||
         (widget.forcePressed && !widget.forcePressedKeepsColor);
-    final isHovered = _hovered && _enabled;
+    final isHovered = _hovered &&
+        _enabled &&
+        !(widget.forcePressed && widget.forcePressedKeepsColor);
     final styleEnabled = _enabled || widget.forcePressed;
 
     final config =
@@ -82,7 +86,10 @@ class _OreButtonState extends State<OreButton> {
 
     Widget content = DefaultTextStyle.merge(
       style: theme.typography.label.copyWith(color: config.textColor),
-      child: _buildContent(config.textColor),
+      child: IconTheme.merge(
+        data: IconThemeData(color: config.textColor),
+        child: _buildContent(context, config.textColor),
+      ),
     );
     content = AnimatedContainer(
       duration: OreTokens.fast,
@@ -147,7 +154,8 @@ class _OreButtonState extends State<OreButton> {
     );
   }
 
-  Widget _buildContent(Color textColor) {
+  Widget _buildContent(BuildContext context, Color textColor) {
+    final iconTheme = IconTheme.of(context);
     final parts = <Widget>[];
     final hasAffixes =
         widget.isLoading || widget.leading != null || widget.trailing != null;
@@ -166,13 +174,21 @@ class _OreButtonState extends State<OreButton> {
     }
 
     if (widget.leading != null) {
-      parts.add(widget.leading!);
+      final leading =
+          _pixelateIcon(widget.leading!, textColor, iconTheme);
+      if (leading != null) {
+        parts.add(leading);
+      }
     }
 
     parts.add(hasAffixes ? Flexible(child: widget.child) : widget.child);
 
     if (widget.trailing != null) {
-      parts.add(widget.trailing!);
+      final trailing =
+          _pixelateIcon(widget.trailing!, textColor, iconTheme);
+      if (trailing != null) {
+        parts.add(trailing);
+      }
     }
 
     if (parts.length == 1) {
@@ -197,6 +213,27 @@ class _OreButtonState extends State<OreButton> {
       }
     }
     return spaced;
+  }
+
+  Widget? _pixelateIcon(
+    Widget icon,
+    Color textColor,
+    IconThemeData iconTheme,
+  ) {
+    if (icon is Icon) {
+      final data = icon.icon;
+      if (data == null) return null;
+      final size = icon.size ?? iconTheme.size ?? 16;
+      final color = icon.color ?? textColor;
+      return OrePixelIcon(
+        icon: data,
+        size: size,
+        color: color,
+        semanticLabel: icon.semanticLabel,
+        textDirection: icon.textDirection,
+      );
+    }
+    return icon;
   }
 
   double _height(OreButtonSize size) {

@@ -41,7 +41,8 @@ class _OreCheckboxState extends State<OreCheckbox> {
     final isHovered = _hovered && _enabled;
     final depthUnit = theme.borderWidth;
     final highlightDepth = depthUnit;
-    final shadowDepth = depthUnit * 2;
+    final visualDepth = depthUnit * 2;
+    final shadowDepth = isPressed ? 0.0 : visualDepth;
     final indicatorSize = depthUnit * OreTokens.checkboxSizeUnits;
     final markSize = depthUnit * OreTokens.checkboxMarkUnits;
     final mixedWidth = depthUnit * OreTokens.checkboxMixedWidthUnits;
@@ -63,29 +64,49 @@ class _OreCheckboxState extends State<OreCheckbox> {
       hovered: isHovered,
     );
 
+    final pressedCut = isPressed ? visualDepth : 0.0;
+    final pressedHeight =
+        (indicatorSize - pressedCut).clamp(0.0, indicatorSize);
+    final contentOffsetY = isPressed ? 0.0 : -visualDepth / 2;
+
+    Widget mark = Center(
+      child: _buildMark(
+        colors,
+        isChecked,
+        isMixed,
+        _enabled,
+        checkSize: markSize,
+        mixedWidth: mixedWidth,
+        mixedHeight: mixedHeight,
+      ),
+    );
+    mark = AnimatedContainer(
+      duration: OreTokens.fast,
+      transform: Matrix4.translationValues(0, contentOffsetY, 0),
+      child: mark,
+    );
+
     final indicator = SizedBox(
       width: indicatorSize,
       height: indicatorSize,
-      child: OreSurface(
-        color: background,
-        borderColor: borderColor,
-        highlightColor: highlightColor,
-        shadowColor: shadowColor,
-        borderWidth: theme.borderWidth,
-        depth: isPressed ? 0 : shadowDepth,
-        highlightDepth: highlightDepth,
-        shadowDepth: shadowDepth,
-        pressed: isPressed,
-        padding: EdgeInsets.zero,
-        child: Center(
-          child: _buildMark(
-            colors,
-            isChecked,
-            isMixed,
-            _enabled,
-            checkSize: markSize,
-            mixedWidth: mixedWidth,
-            mixedHeight: mixedHeight,
+      child: Align(
+        alignment: Alignment.bottomCenter,
+        child: SizedBox(
+          width: indicatorSize,
+          height: pressedHeight,
+          child: OreSurface(
+            color: background,
+            borderColor: borderColor,
+            highlightColor: highlightColor,
+            shadowColor: shadowColor,
+            borderWidth: theme.borderWidth,
+            depth: visualDepth,
+            highlightDepth: highlightDepth,
+            shadowDepth: shadowDepth,
+            swapHighlightOnPressed: false,
+            pressed: isPressed,
+            padding: EdgeInsets.zero,
+            child: mark,
           ),
         ),
       ),

@@ -76,10 +76,23 @@ class OreChoiceButtons extends StatelessWidget {
     final pressedAxis =
         axis == Axis.vertical ? Axis.horizontal : Axis.vertical;
     final shadowSide = dock.shadowSide;
+    final indicatorInset = borderWidth;
 
     final children = List.generate(items.length, (index) {
       final selected = index == selectedIndex;
-      final indicatorBottom = borderWidth;
+      final isVertical = axis == Axis.vertical;
+      final indicator = Align(
+        alignment: Alignment.center,
+        child: FractionallySizedBox(
+          widthFactor:
+              isVertical ? 1 : OreTokens.choiceIndicatorWidthFactor,
+          heightFactor:
+              isVertical ? OreTokens.choiceIndicatorWidthFactor : 1,
+          child: DecoratedBox(
+            decoration: BoxDecoration(color: colors.textInverse),
+          ),
+        ),
+      );
       final button = OreButton(
         onPressed: _enabled ? () => onChanged?.call(index) : null,
         size: size,
@@ -97,22 +110,25 @@ class OreChoiceButtons extends StatelessWidget {
         children: [
           button,
           if (selected)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: indicatorBottom,
-              height: indicatorHeight,
-              child: Align(
-                alignment: Alignment.center,
-                child: FractionallySizedBox(
-                  widthFactor: OreTokens.choiceIndicatorWidthFactor,
-                  heightFactor: 1,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(color: colors.textInverse),
-                  ),
-                ),
+            if (isVertical)
+              Positioned(
+                top: 0,
+                bottom: 0,
+                width: indicatorHeight,
+                left: dock == OreChoiceDock.left ? indicatorInset : null,
+                right: dock == OreChoiceDock.right ? indicatorInset : null,
+                child: indicator,
+              )
+            else
+              Positioned(
+                left: 0,
+                right: 0,
+                height: indicatorHeight,
+                top: dock == OreChoiceDock.top ? indicatorInset : null,
+                bottom:
+                    dock == OreChoiceDock.bottom ? indicatorInset : null,
+                child: indicator,
               ),
-            ),
         ],
       );
 
@@ -467,18 +483,10 @@ class _RenderOverlapStack extends RenderBox
   ) {
     switch (crossAxisAlignment) {
       case CrossAxisAlignment.start:
-        if (axis == Axis.vertical &&
-            _textDirection == TextDirection.rtl) {
-          return crossExtent - childExtent;
-        }
         return 0.0;
       case CrossAxisAlignment.center:
         return (crossExtent - childExtent) / 2;
       case CrossAxisAlignment.end:
-        if (axis == Axis.vertical &&
-            _textDirection == TextDirection.rtl) {
-          return 0.0;
-        }
         return crossExtent - childExtent;
       case CrossAxisAlignment.stretch:
       case CrossAxisAlignment.baseline:

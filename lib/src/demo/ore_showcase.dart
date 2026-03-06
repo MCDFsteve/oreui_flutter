@@ -213,13 +213,13 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
                             OreButton(
                               onPressed: () {},
                               leading:
-                                  const Icon(Icons.star, size: 16),
+                                  const OrePixelIcon(icon: Icons.star, size: 16),
                               child: const Text('收藏'),
                             ),
                             OreButton(
                               variant: OreButtonVariant.primary,
                               onPressed: () {},
-                              leading: const Icon(Icons.add, size: 16),
+                              leading: const OrePixelIcon(icon: Icons.add, size: 16),
                               child: const Text('创建'),
                             ),
                           ],

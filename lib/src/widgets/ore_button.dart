@@ -88,14 +88,20 @@ class _OreButtonState extends State<OreButton> {
 
     Widget content = DefaultTextStyle.merge(
       style: theme.typography.label.copyWith(color: config.textColor),
-      child: IconTheme.merge(
-        data: IconThemeData(color: config.textColor),
-        child: _buildContent(context, config.textColor),
-      ),
+      child: _buildContent(config.textColor),
     );
-    content = AnimatedContainer(
+    content = TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: contentOffsetY, end: contentOffsetY),
       duration: OreTokens.fast,
-      transform: Matrix4.translationValues(0, contentOffsetY, 0),
+      builder: (context, value, child) {
+        final dpr = MediaQuery.of(context).devicePixelRatio;
+        final snapped =
+            (value * dpr).roundToDouble() / dpr;
+        return Transform.translate(
+          offset: Offset(0, snapped),
+          child: child,
+        );
+      },
       child: content,
     );
 
@@ -162,8 +168,7 @@ class _OreButtonState extends State<OreButton> {
     );
   }
 
-  Widget _buildContent(BuildContext context, Color textColor) {
-    final iconTheme = IconTheme.of(context);
+  Widget _buildContent(Color textColor) {
     final parts = <Widget>[];
     final hasAffixes =
         widget.isLoading || widget.leading != null || widget.trailing != null;
@@ -182,21 +187,13 @@ class _OreButtonState extends State<OreButton> {
     }
 
     if (widget.leading != null) {
-      final leading =
-          _pixelateIcon(widget.leading!, textColor, iconTheme);
-      if (leading != null) {
-        parts.add(leading);
-      }
+      parts.add(_normalizeIcon(widget.leading!, textColor));
     }
 
     parts.add(hasAffixes ? Flexible(child: widget.child) : widget.child);
 
     if (widget.trailing != null) {
-      final trailing =
-          _pixelateIcon(widget.trailing!, textColor, iconTheme);
-      if (trailing != null) {
-        parts.add(trailing);
-      }
+      parts.add(_normalizeIcon(widget.trailing!, textColor));
     }
 
     if (parts.length == 1) {
@@ -223,25 +220,20 @@ class _OreButtonState extends State<OreButton> {
     return spaced;
   }
 
-  Widget? _pixelateIcon(
-    Widget icon,
-    Color textColor,
-    IconThemeData iconTheme,
-  ) {
-    if (icon is Icon) {
-      final data = icon.icon;
-      if (data == null) return null;
-      final size = icon.size ?? iconTheme.size ?? 16;
-      final color = icon.color ?? textColor;
+  Widget _normalizeIcon(Widget widget, Color textColor) {
+    if (widget is OrePixelIcon) return widget;
+    if (widget is Icon) {
+      final iconData = widget.icon;
+      if (iconData == null) return widget;
       return OrePixelIcon(
-        icon: data,
-        size: size,
-        color: color,
-        semanticLabel: icon.semanticLabel,
-        textDirection: icon.textDirection,
+        icon: iconData,
+        size: widget.size,
+        color: widget.color ?? textColor,
+        semanticLabel: widget.semanticLabel,
+        textDirection: widget.textDirection,
       );
     }
-    return icon;
+    return widget;
   }
 
   double _height(OreButtonSize size) {

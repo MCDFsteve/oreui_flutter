@@ -10,6 +10,7 @@ import '../widgets/ore_choice_title.dart';
 import '../widgets/ore_card.dart';
 import '../widgets/ore_divider.dart';
 import '../widgets/ore_dropdown_button.dart';
+import '../widgets/ore_loading_indicator.dart';
 import '../widgets/ore_pixel_icon.dart';
 import '../widgets/ore_scrollbar.dart';
 import '../widgets/ore_slider.dart';
@@ -388,6 +389,19 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
                               onChanged: (value) =>
                                   setState(() => _toggled = value),
                             ),
+                          ],
+                        ),
+                        const SizedBox(height: OreTokens.gapMd),
+                        Text('Loading', style: ore.typography.label),
+                        const SizedBox(height: OreTokens.gapSm),
+                        Wrap(
+                          spacing: OreTokens.gapMd,
+                          runSpacing: OreTokens.gapSm,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: const [
+                            OreLoadingIndicator(),
+                            OreLoadingIndicator(tone: OreLoadingTone.dark),
+                            OreLoadingIndicator(tone: OreLoadingTone.light),
                           ],
                         ),
                       ],

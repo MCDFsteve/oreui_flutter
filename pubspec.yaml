@@ -25,6 +25,7 @@ flutter:
     - assets/fonts/
     - assets/I.png
     - assets/O.png
+    - assets/loading/
 
   # To add assets to your package, add an assets section, like this:
   # assets:

@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 import '../theme/ore_theme.dart';
 import '../theme/ore_tokens.dart';
@@ -28,8 +28,13 @@ class OreChoiceDescription extends StatelessWidget {
     }
 
     final theme = OreTheme.of(context);
-    final textStyle = style ??
-        theme.typography.body.copyWith(color: theme.colors.textPrimary);
+    final muted = theme.colors.textMuted;
+    final brightness = Theme.of(context).brightness;
+    final adjustedMuted = brightness == Brightness.light
+        ? (Color.lerp(muted, theme.colors.textPrimary, 0.2) ?? muted)
+        : (Color.lerp(muted, theme.colors.textInverse, 0.15) ?? muted);
+    final textStyle =
+        style ?? theme.typography.body.copyWith(color: adjustedMuted);
     final resolvedPadding = padding ?? const EdgeInsets.all(OreTokens.gapXs);
 
     return DefaultTextStyle.merge(

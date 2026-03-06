@@ -411,7 +411,7 @@ class _OreButtonState extends State<OreButton> {
       return _ButtonColors(
         background: colors.surface,
         borderColor: colors.borderLight,
-        shadowColor: colors.borderLight.withOpacity(0.6),
+        shadowColor: colors.borderLight.withValues(alpha: 0.6),
         highlightColor: Colors.transparent,
         textColor: colors.textDisabled,
       );

@@ -125,7 +125,7 @@ class OreTextField extends StatelessWidget {
       color: surfaceColor,
       borderColor: borderColor,
       highlightColor: Colors.transparent,
-      shadowColor: borderColor.withOpacity(0.6),
+      shadowColor: borderColor.withValues(alpha: 0.6),
       borderWidth: theme.borderWidth,
       depth: shadowDepth,
       highlightDepth: highlightDepth,

@@ -128,7 +128,7 @@ class OreKnobPainter extends CustomPainter {
     final shouldSwap = pressed && swapHighlightOnPressed;
     final highlight = shouldSwap ? shadowColor : highlightColor;
     final shadow = shouldSwap ? highlightColor : shadowColor;
-    final cornerHighlight = highlight.alpha == 0
+    final cornerHighlight = highlight.a == 0
         ? highlight
         : Color.lerp(
             highlight, const Color(0xFFFFFFFF), cornerHighlightFactor)!;
@@ -136,9 +136,11 @@ class OreKnobPainter extends CustomPainter {
         (highlightDepth ?? depth).clamp(0.0, 8.0).toDouble();
     final resolvedShadowDepth =
         (shadowDepth ?? depth).clamp(0.0, 8.0).toDouble();
-    final weakHighlight = highlight.alpha == 0
+    final weakHighlight = highlight.a == 0
         ? highlight
-        : highlight.withOpacity((highlight.opacity * 0.66).clamp(0, 1));
+        : highlight.withValues(
+            alpha: (highlight.a * 0.66).clamp(0.0, 1.0),
+          );
 
     if (paintFill) {
       final fillPaint = Paint()

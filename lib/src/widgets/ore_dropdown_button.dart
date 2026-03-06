@@ -214,7 +214,7 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
     _setPressed(false);
     final theme = OreTheme.of(context);
     final surfaceColors = theme.colors;
-    final overlay = Overlay.of(context);
+    final overlay = Overlay.maybeOf(context);
     if (overlay == null) return;
     final buttonBox = context.findRenderObject() as RenderBox?;
     if (buttonBox == null || !buttonBox.hasSize) return;
@@ -271,7 +271,7 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
             MaterialLocalizations.of(context).modalBarrierDismissLabel,
         barrierColor: Colors.transparent,
         transitionDuration: OreTokens.fast,
-        pageBuilder: (context, _, __) {
+        pageBuilder: (context, _, _) {
           return Material(
             type: MaterialType.transparency,
             child: Stack(
@@ -384,7 +384,7 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
       return _DropdownColors(
         background: colors.surface,
         borderColor: colors.borderLight,
-        shadowColor: colors.borderLight.withOpacity(0.6),
+        shadowColor: colors.borderLight.withValues(alpha: 0.6),
         highlightColor: Colors.transparent,
         textColor: colors.textDisabled,
       );
@@ -650,8 +650,6 @@ class _MenuSurface extends StatelessWidget {
     required this.padding,
     this.alignment = Alignment.centerLeft,
     this.showBlackTop = true,
-    this.showBlackLeft = true,
-    this.showBlackRight = true,
     this.showBlackBottom = true,
     this.whiteInsetTop = 0.0,
     this.whiteInsetBottom = 0.0,
@@ -665,8 +663,6 @@ class _MenuSurface extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   final AlignmentGeometry alignment;
   final bool showBlackTop;
-  final bool showBlackLeft;
-  final bool showBlackRight;
   final bool showBlackBottom;
   final double whiteInsetTop;
   final double whiteInsetBottom;
@@ -676,8 +672,8 @@ class _MenuSurface extends StatelessWidget {
     final resolvedPadding =
         padding.resolve(Directionality.of(context));
     final innerWidth = _menuInnerBorderWidth;
-    final leftInset = showBlackLeft ? borderWidth : 0.0;
-    final rightInset = showBlackRight ? borderWidth : 0.0;
+    final leftInset = borderWidth;
+    final rightInset = borderWidth;
     final topInset = showBlackTop ? borderWidth : 0.0;
     final bottomInset = showBlackBottom ? borderWidth : 0.0;
     final whiteTopInset = topInset + whiteInsetTop;
@@ -697,14 +693,13 @@ class _MenuSurface extends StatelessWidget {
                 height: borderWidth,
                 child: Container(color: borderColor),
               ),
-            if (showBlackLeft)
-              Positioned(
-                left: 0,
-                top: 0,
-                bottom: 0,
-                width: borderWidth,
-                child: Container(color: borderColor),
-              ),
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: borderWidth,
+              child: Container(color: borderColor),
+            ),
             if (showBlackBottom)
               Positioned(
                 left: 0,
@@ -713,14 +708,13 @@ class _MenuSurface extends StatelessWidget {
                 height: borderWidth,
                 child: Container(color: borderColor),
               ),
-            if (showBlackRight)
-              Positioned(
-                right: 0,
-                top: 0,
-                bottom: 0,
-                width: borderWidth,
-                child: Container(color: borderColor),
-              ),
+            Positioned(
+              right: 0,
+              top: 0,
+              bottom: 0,
+              width: borderWidth,
+              child: Container(color: borderColor),
+            ),
           ],
           Positioned(
             left: leftInset,

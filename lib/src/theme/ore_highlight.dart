@@ -24,15 +24,15 @@ class OreHighlight {
     double factor = 0.4,
   }) {
     final base = colors.highlight;
-    if (base.alpha == 0) return base;
-    final nextOpacity = (base.opacity * factor).clamp(0.0, 1.0);
-    return base.withOpacity(nextOpacity);
+    if (base.a == 0) return base;
+    final nextOpacity = (base.a * factor).clamp(0.0, 1.0);
+    return base.withValues(alpha: nextOpacity);
   }
 
   static Color mutedColored({double factor = 0.4}) {
     final base = OreTokens.coloredHighlight;
-    if (base.alpha == 0) return base;
-    final nextOpacity = (base.opacity * factor).clamp(0.0, 1.0);
-    return base.withOpacity(nextOpacity);
+    if (base.a == 0) return base;
+    final nextOpacity = (base.a * factor).clamp(0.0, 1.0);
+    return base.withValues(alpha: nextOpacity);
   }
 }

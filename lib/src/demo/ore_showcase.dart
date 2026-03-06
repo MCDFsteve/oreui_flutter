@@ -8,7 +8,6 @@ import '../widgets/ore_choice_buttons.dart';
 import '../widgets/ore_choice_description.dart';
 import '../widgets/ore_choice_title.dart';
 import '../widgets/ore_card.dart';
-import '../widgets/ore_divider.dart';
 import '../widgets/ore_dropdown_button.dart';
 import '../widgets/ore_loading_indicator.dart';
 import '../widgets/ore_pixel_icon.dart';
@@ -63,7 +62,7 @@ class OreShowcasePage extends StatefulWidget {
 class _OreShowcasePageState extends State<OreShowcasePage> {
   bool _checked = true;
   bool _toggled = true;
-  bool? _tri = null;
+  bool? _tri;
   int _difficulty = 0;
   double _slider = 0.6;
   int _choice = 0;
@@ -323,7 +322,7 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
                                   OreTokens.gapSm,
                                 ),
                                 itemCount: 18,
-                                separatorBuilder: (_, __) =>
+                                separatorBuilder: (_, _) =>
                                     const SizedBox(height: OreTokens.gapXs),
                                 itemBuilder: (context, index) => Text(
                                   '条目 ${index + 1}',

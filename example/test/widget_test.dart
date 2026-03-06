@@ -7,7 +7,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:oreui_flutter_example/main.dart';
+import 'package:oreui_flutter/oreui_flutter.dart';
 
 void main() {
   testWidgets('Showcase renders', (WidgetTester tester) async {

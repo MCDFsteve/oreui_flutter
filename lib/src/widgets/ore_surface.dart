@@ -52,7 +52,7 @@ class OreSurface extends StatelessWidget {
     final shouldSwap = pressed && swapHighlightOnPressed;
     final highlight = shouldSwap ? shadowColor : highlightColor;
     final shadow = shouldSwap ? highlightColor : shadowColor;
-    final cornerHighlight = highlight.alpha == 0
+    final cornerHighlight = highlight.a == 0
         ? highlight
         : Color.lerp(
             highlight, const Color(0xFFFFFFFF), cornerHighlightFactor)!;
@@ -62,9 +62,11 @@ class OreSurface extends StatelessWidget {
         math.max(0.0, shadowDepth ?? depth);
     final resolvedShadowSide =
         shadowSide ?? (shadowOnTop ? OreShadowSide.top : OreShadowSide.bottom);
-    final weakHighlight = highlight.alpha == 0
+    final weakHighlight = highlight.a == 0
         ? highlight
-        : highlight.withOpacity((highlight.opacity * 0.66).clamp(0, 1));
+        : highlight.withValues(
+            alpha: (highlight.a * 0.66).clamp(0.0, 1.0),
+          );
 
     final resolvedPadding =
         padding?.resolve(Directionality.of(context)) ??

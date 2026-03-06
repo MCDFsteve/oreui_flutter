@@ -1,7 +1,9 @@
 name: oreui_flutter
 description: "Ore UI 风格的 Flutter 控件包（非官方关联）。"
 version: 0.0.1
-homepage:
+homepage: https://github.com/MCDFsteve/oreui_flutter
+repository: https://github.com/MCDFsteve/oreui_flutter
+issue_tracker: https://github.com/MCDFsteve/oreui_flutter/issues
 
 environment:
   sdk: ^3.10.4

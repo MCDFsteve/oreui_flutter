@@ -1,5 +1,3 @@
-library oreui_flutter;
-
 export 'src/theme/ore_theme.dart';
 export 'src/theme/ore_tokens.dart';
 export 'src/theme/ore_control_colors.dart';

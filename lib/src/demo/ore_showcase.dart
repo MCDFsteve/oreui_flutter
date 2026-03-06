@@ -85,156 +85,178 @@ class _OreShowcasePageState extends State<OreShowcasePage> {
       backgroundColor: colors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(OreTokens.gapLg),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Ore UI Showcase', style: ore.typography.title),
-              const SizedBox(height: OreTokens.gapLg),
-              OreCard(
+              Padding(
+                padding: const EdgeInsets.all(OreTokens.gapLg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Buttons', style: ore.typography.label),
+                    Text('Ore UI Showcase', style: ore.typography.title),
+                    const SizedBox(height: OreTokens.gapLg),
+                    OreCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Buttons', style: ore.typography.label),
+                          const SizedBox(height: OreTokens.gapSm),
+                          Wrap(
+                            spacing: OreTokens.gapSm,
+                            runSpacing: OreTokens.gapSm,
+                            children: [
+                              OreButton(
+                                onPressed: () {},
+                                child: const Text('Normal'),
+                              ),
+                              OreButton(
+                                variant: OreButtonVariant.primary,
+                                onPressed: () {},
+                                child: const Text('Confirm'),
+                              ),
+                              OreButton(
+                                variant: OreButtonVariant.danger,
+                                onPressed: () {},
+                                child: const Text('Delete'),
+                              ),
+                              const OreButton(
+                                onPressed: null,
+                                child: Text('Disabled'),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: OreTokens.gapLg),
+                    OreCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Form', style: ore.typography.label),
+                          const SizedBox(height: OreTokens.gapSm),
+                          OreTextField(
+                            controller: _controller,
+                            hintText: '输入内容',
+                            onChanged: (_) {},
+                          ),
+                          const SizedBox(height: OreTokens.gapMd),
+                          OreTextField(
+                            enabled: false,
+                            hintText: '禁用输入框',
+                          ),
+                          const SizedBox(height: OreTokens.gapMd),
+                          OreSlider(
+                            value: _slider,
+                            onChanged: (value) =>
+                                setState(() => _slider = value),
+                          ),
+                          const SizedBox(height: OreTokens.gapMd),
+                          OreDropdownButton<String>(
+                            items: _dropdownItems,
+                            value: _dropdownValue,
+                            onChanged: (value) =>
+                                setState(() => _dropdownValue = value),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: OreTokens.gapLg),
+                    OreCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Toggles', style: ore.typography.label),
+                          const SizedBox(height: OreTokens.gapSm),
+                          Wrap(
+                            spacing: OreTokens.gapLg,
+                            runSpacing: OreTokens.gapSm,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              OreChoiceButtons(
+                                items: const [
+                                  Text('选项一'),
+                                  Text('选项二'),
+                                  Text('选项三'),
+                                ],
+                                selectedIndex: _choice,
+                                onChanged: (value) =>
+                                    setState(() => _choice = value),
+                              ),
+                              OreCheckbox(
+                                value: _checked,
+                                onChanged: (value) =>
+                                    setState(() => _checked = value ?? false),
+                                label: const Text('Checked'),
+                              ),
+                              OreCheckbox(
+                                value: _tri,
+                                tristate: true,
+                                onChanged: (value) =>
+                                    setState(() => _tri = value),
+                                label: const Text('Tri-state'),
+                              ),
+                              OreSwitch(
+                                value: _toggled,
+                                onChanged: (value) =>
+                                    setState(() => _toggled = value),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: OreTokens.gapLg),
+                    const OreDivider(),
                     const SizedBox(height: OreTokens.gapSm),
-                    Wrap(
-                      spacing: OreTokens.gapSm,
-                      runSpacing: OreTokens.gapSm,
-                      children: [
-                        OreButton(
-                          onPressed: () {},
-                          child: const Text('Normal'),
-                        ),
-                        OreButton(
-                          variant: OreButtonVariant.primary,
-                          onPressed: () {},
-                          child: const Text('Confirm'),
-                        ),
-                        OreButton(
-                          variant: OreButtonVariant.danger,
-                          onPressed: () {},
-                          child: const Text('Delete'),
-                        ),
-                        const OreButton(
-                          onPressed: null,
-                          child: Text('Disabled'),
-                        ),
-                      ],
+                    Text(
+                      'Minecraft 风格的基础控件集合演示。',
+                      style: ore.typography.body
+                          .copyWith(color: colors.textInverse),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: OreTokens.gapLg),
-              OreCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Form', style: ore.typography.label),
-                    const SizedBox(height: OreTokens.gapSm),
-                    OreTextField(
-                      controller: _controller,
-                      hintText: '输入内容',
-                      onChanged: (_) {},
-                    ),
-                    const SizedBox(height: OreTokens.gapMd),
-                    OreTextField(
-                      enabled: false,
-                      hintText: '禁用输入框',
-                    ),
-                    const SizedBox(height: OreTokens.gapMd),
-                    OreSlider(
-                      value: _slider,
-                      onChanged: (value) => setState(() => _slider = value),
-                    ),
-                    const SizedBox(height: OreTokens.gapMd),
-                    OreDropdownButton<String>(
-                      items: _dropdownItems,
-                      value: _dropdownValue,
-                      onChanged: (value) =>
-                          setState(() => _dropdownValue = value),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: OreTokens.gapLg),
               OreStrip(
-                padding:
-                    const EdgeInsets.symmetric(vertical: OreTokens.gapSm),
-                child: DefaultTextStyle.merge(
-                  style: ore.typography.body.copyWith(
-                    color: colors.textPrimary,
+                tone: OreStripTone.dark,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: OreTokens.gapLg,
+                    vertical: OreTokens.gapSm,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('难度', style: ore.typography.label),
-                      const SizedBox(height: OreTokens.gapSm),
-                      OreChoiceButtons(
-                        items: _difficultyItems,
-                        selectedIndex: _difficulty,
-                        onChanged: (value) =>
-                            setState(() => _difficulty = value),
-                      ),
-                      const SizedBox(height: OreTokens.gapSm),
-                      OreChoiceDescription(
-                        items: _difficultyDescriptions,
-                        selectedIndex: _difficulty,
-                        padding: EdgeInsets.zero,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: OreTokens.gapLg),
-              OreCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Toggles', style: ore.typography.label),
-                    const SizedBox(height: OreTokens.gapSm),
-                    Wrap(
-                      spacing: OreTokens.gapLg,
-                      runSpacing: OreTokens.gapSm,
-                      crossAxisAlignment: WrapCrossAlignment.center,
+                  child: DefaultTextStyle.merge(
+                    style: ore.typography.body.copyWith(
+                      color: colors.textInverse,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Text(
+                          '难度',
+                          style: ore.typography.label
+                              .copyWith(color: colors.textInverse),
+                        ),
+                        const SizedBox(height: OreTokens.gapSm),
                         OreChoiceButtons(
-                          items: const [
-                            Text('选项一'),
-                            Text('选项二'),
-                            Text('选项三'),
-                          ],
-                          selectedIndex: _choice,
-                          onChanged: (value) => setState(() => _choice = value),
-                        ),
-                        OreCheckbox(
-                          value: _checked,
+                          items: _difficultyItems,
+                          selectedIndex: _difficulty,
                           onChanged: (value) =>
-                              setState(() => _checked = value ?? false),
-                          label: const Text('Checked'),
+                              setState(() => _difficulty = value),
                         ),
-                        OreCheckbox(
-                          value: _tri,
-                          tristate: true,
-                          onChanged: (value) => setState(() => _tri = value),
-                          label: const Text('Tri-state'),
-                        ),
-                        OreSwitch(
-                          value: _toggled,
-                          onChanged: (value) =>
-                              setState(() => _toggled = value),
+                        const SizedBox(height: OreTokens.gapSm),
+                        OreChoiceDescription(
+                          items: _difficultyDescriptions,
+                          selectedIndex: _difficulty,
+                          padding: EdgeInsets.zero,
+                          style: ore.typography.body
+                              .copyWith(color: colors.textInverse),
                         ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
               ),
               const SizedBox(height: OreTokens.gapLg),
-              const OreDivider(),
-              const SizedBox(height: OreTokens.gapSm),
-              Text(
-                'Minecraft 风格的基础控件集合演示。',
-                style: ore.typography.body.copyWith(color: colors.textInverse),
-              ),
             ],
           ),
         ),

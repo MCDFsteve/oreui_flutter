@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart';
 
 import '../theme/ore_theme.dart';
 
+enum OreStripTone { surface, dark }
+
 class OreStrip extends StatelessWidget {
   const OreStrip({
     super.key,
@@ -12,6 +14,7 @@ class OreStrip extends StatelessWidget {
     this.highlightColor,
     this.shadowColor,
     this.alignment = Alignment.centerLeft,
+    this.tone = OreStripTone.surface,
   });
 
   final Widget child;
@@ -21,6 +24,7 @@ class OreStrip extends StatelessWidget {
   final Color? highlightColor;
   final Color? shadowColor;
   final AlignmentGeometry alignment;
+  final OreStripTone tone;
 
   @override
   Widget build(BuildContext context) {
@@ -29,10 +33,20 @@ class OreStrip extends StatelessWidget {
     final stroke = theme.borderWidth;
 
     final resolvedPadding = padding ?? EdgeInsets.zero;
+    final resolvedColor = color ??
+        (tone == OreStripTone.dark ? colors.background : colors.surface);
+    final resolvedHighlight = highlightColor ??
+        (tone == OreStripTone.dark
+            ? colors.highlight.withOpacity(0.14)
+            : colors.highlight);
+    final resolvedShadow = shadowColor ??
+        (tone == OreStripTone.dark
+            ? colors.border.withOpacity(0.5)
+            : colors.shadow);
 
     Widget body = Container(
       width: double.infinity,
-      color: color ?? colors.surface,
+      color: resolvedColor,
       child: Stack(
         alignment: alignment,
         children: [
@@ -42,7 +56,7 @@ class OreStrip extends StatelessWidget {
             top: 0,
             height: stroke,
             child: Container(
-              color: highlightColor ?? colors.highlight,
+              color: resolvedHighlight,
             ),
           ),
           Positioned(
@@ -51,7 +65,7 @@ class OreStrip extends StatelessWidget {
             bottom: 0,
             height: stroke,
             child: Container(
-              color: shadowColor ?? colors.shadow,
+              color: resolvedShadow,
             ),
           ),
           Padding(

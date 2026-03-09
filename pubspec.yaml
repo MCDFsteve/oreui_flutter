@@ -1,9 +1,20 @@
 name: oreui_flutter
-description: "Ore UI 风格的 Flutter 控件包（非官方关联）。"
-version: 0.0.1
+description: "A pixel-inspired Flutter UI kit with Ore-style theme, widgets, and assets (unofficial)."
+version: 0.0.2
 homepage: https://github.com/MCDFsteve/oreui_flutter
 repository: https://github.com/MCDFsteve/oreui_flutter
 issue_tracker: https://github.com/MCDFsteve/oreui_flutter/issues
+topics:
+  - flutter-ui
+  - pixel-ui
+  - widgets
+  - game-ui
+  - design-system
+screenshots:
+  - description: "Ore-style controls and typography in a light showcase page."
+    path: assets/sh1.png
+  - description: "Dark showcase page with buttons, cards, inputs, and toggles."
+    path: assets/sh2.png
 
 environment:
   sdk: ^3.10.4

@@ -1,16 +1,16 @@
 # oreui_flutter_example
 
-A new Flutter project.
+Example app for `oreui_flutter`.
 
-## Getting Started
+## Run
 
-This project is a starting point for a Flutter application.
+```bash
+flutter pub get
+flutter run
+```
 
-A few resources to get you started if this is your first Flutter project:
+## What is included
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- `OreShowcaseApp` as the demo entry
+- Theme switching (light/dark)
+- Core Ore widgets preview (button, card, checkbox, switch, slider, text field, dropdown, scrollbar, loading)

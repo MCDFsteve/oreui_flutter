@@ -47,6 +47,7 @@ class _OreScrollbarState extends State<OreScrollbar> {
   bool _hovered = false;
   bool _pressed = false;
   bool _dragging = false;
+  bool _metricsUpdatePending = false;
   double _dragStartThumbOffset = 0.0;
   double _dragDelta = 0.0;
 
@@ -77,11 +78,22 @@ class _OreScrollbarState extends State<OreScrollbar> {
       );
     }
 
-    return Stack(
-      children: [
-        child,
-        _buildScrollbar(context),
-      ],
+    return NotificationListener<ScrollMetricsNotification>(
+      onNotification: (notification) {
+        // Content dimensions arrive after the first build and can change on
+        // resize without the controller emitting a scroll-position update.
+        if (notification.depth == 0 && !_metricsUpdatePending) {
+          _metricsUpdatePending = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _metricsUpdatePending = false;
+            if (mounted) setState(() {});
+          });
+        }
+        return false;
+      },
+      child: Stack(
+        children: [child, _buildScrollbar(context)],
+      ),
     );
   }
 

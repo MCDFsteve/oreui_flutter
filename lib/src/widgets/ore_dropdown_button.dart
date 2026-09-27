@@ -12,10 +12,7 @@ const double _menuInnerBorderWidth = 1.0;
 
 @immutable
 class OreDropdownItem<T> {
-  const OreDropdownItem({
-    required this.value,
-    required this.child,
-  });
+  const OreDropdownItem({required this.value, required this.child});
 
   final T value;
   final Widget child;
@@ -62,8 +59,7 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
     final colors = resolveControlColors(context, themeColors);
     final isPressed = _pressed && _enabled;
     final isHovered = _hovered && _enabled;
-    final baseConfig =
-        _resolveColors(colors, isHovered, isPressed, _enabled);
+    final baseConfig = _resolveColors(colors, isHovered, isPressed, _enabled);
     final config = _menuOpen
         ? _DropdownColors(
             background: themeColors.background,
@@ -74,20 +70,29 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
           )
         : baseConfig;
     final height = _height(widget.size);
-    final padding = _padding(widget.size, theme.borderWidth);
+    final basePadding = _padding(widget.size, theme.borderWidth);
+    final padding = isPressed
+        ? basePadding.copyWith(
+            top: (basePadding.top - theme.bevelDepth / 2).clamp(
+              0.0,
+              basePadding.top,
+            ),
+            bottom: (basePadding.bottom - theme.bevelDepth / 2).clamp(
+              0.0,
+              basePadding.bottom,
+            ),
+          )
+        : basePadding;
 
     final visualDepth = _menuOpen ? 0.0 : theme.bevelDepth;
     final shadowDepth = (isPressed || _menuOpen) ? 0.0 : visualDepth;
     final highlightDepth = _menuOpen
         ? 0.0
         : (visualDepth - 1).clamp(0.0, visualDepth).toDouble();
-    final contentOffsetY =
-        (isPressed || _menuOpen) ? 0.0 : -visualDepth / 2;
+    final contentOffsetY = (isPressed || _menuOpen) ? 0.0 : -visualDepth / 2;
 
     final display = _selectedChild() ?? widget.hint ?? const SizedBox.shrink();
-    final labelStyle = theme.typography.label.copyWith(
-      color: config.textColor,
-    );
+    final labelStyle = theme.typography.label.copyWith(color: config.textColor);
     final arrow = Icon(
       _menuOpen ? Icons.check : Icons.keyboard_arrow_down,
       size: 18,
@@ -104,10 +109,8 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
       child: content,
     );
 
-    final hideBlackTop =
-        _menuOpen && _menuPlacement == _MenuPlacement.above;
-    final hideBlackBottom =
-        _menuOpen && _menuPlacement == _MenuPlacement.below;
+    final hideBlackTop = _menuOpen && _menuPlacement == _MenuPlacement.above;
+    final hideBlackBottom = _menuOpen && _menuPlacement == _MenuPlacement.below;
     final surface = _menuOpen
         ? _MenuSurface(
             color: config.background,
@@ -139,18 +142,11 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
           );
 
     final pressedCut = isPressed ? visualDepth : 0.0;
-    final pressedHeight = (height - pressedCut).clamp(0.0, height);
-    final widthFactor = widget.fullWidth ? null : 1.0;
-
-    Widget buttonBody = SizedBox(
-      height: height,
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        widthFactor: widthFactor,
-        child: SizedBox(
-          height: pressedHeight,
-          child: surface,
-        ),
+    Widget buttonBody = Padding(
+      padding: EdgeInsets.only(top: pressedCut),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minHeight: height - pressedCut),
+        child: surface,
       ),
     );
 
@@ -182,6 +178,7 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
           Expanded(
             child: Align(
               alignment: Alignment.centerLeft,
+              heightFactor: 1,
               child: label,
             ),
           ),
@@ -221,8 +218,10 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
     final overlayBox = overlay.context.findRenderObject() as RenderBox?;
     if (overlayBox == null || !overlayBox.hasSize) return;
 
-    final buttonTopLeft =
-        buttonBox.localToGlobal(Offset.zero, ancestor: overlayBox);
+    final buttonTopLeft = buttonBox.localToGlobal(
+      Offset.zero,
+      ancestor: overlayBox,
+    );
     final buttonRect = Rect.fromLTWH(
       buttonTopLeft.dx,
       buttonTopLeft.dy,
@@ -230,34 +229,29 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
       buttonBox.size.height,
     );
     final overlaySize = overlayBox.size;
-    final itemHeight = _height(widget.size);
+    final itemHeight = buttonRect.height;
     final overlap = theme.borderWidth;
-    final menuHeight = _menuHeight(
-      widget.items.length,
-      itemHeight,
-      overlap,
-    );
+    final menuHeight = _menuHeight(widget.items.length, itemHeight);
     final menuWidth = buttonRect.width;
     final left = _clampHorizontal(
       buttonRect.left,
       menuWidth,
       overlaySize.width,
     );
-    final belowFits =
-        buttonRect.bottom + menuHeight - overlap <= overlaySize.height;
-    final aboveFits =
-        buttonRect.top - menuHeight + overlap >= 0;
-    final top = _resolveVerticalPosition(
-      buttonRect,
-      menuHeight,
+    final belowSpace = (overlaySize.height - buttonRect.bottom + overlap).clamp(
+      0.0,
       overlaySize.height,
-      overlap,
     );
-    final maxHeight =
-        (overlaySize.height - top).clamp(0.0, overlaySize.height);
-    final placement = belowFits || !aboveFits
+    final aboveSpace = (buttonRect.top + overlap).clamp(
+      0.0,
+      overlaySize.height,
+    );
+    final placement = belowSpace >= menuHeight || belowSpace >= aboveSpace
         ? _MenuPlacement.below
         : _MenuPlacement.above;
+    final maxHeight = placement == _MenuPlacement.below
+        ? belowSpace
+        : aboveSpace;
 
     setState(() {
       _menuOpen = true;
@@ -267,8 +261,9 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
       final selected = await showGeneralDialog<T>(
         context: context,
         barrierDismissible: true,
-        barrierLabel:
-            MaterialLocalizations.of(context).modalBarrierDismissLabel,
+        barrierLabel: MaterialLocalizations.of(
+          context,
+        ).modalBarrierDismissLabel,
         barrierColor: Colors.transparent,
         transitionDuration: OreTokens.fast,
         pageBuilder: (context, _, _) {
@@ -284,21 +279,25 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
                 ),
                 Positioned(
                   left: left,
-                  top: top,
+                  top: placement == _MenuPlacement.below
+                      ? buttonRect.bottom - overlap
+                      : null,
+                  bottom: placement == _MenuPlacement.above
+                      ? overlaySize.height - buttonRect.top - overlap
+                      : null,
                   width: menuWidth,
                   child: _DropdownMenuPanel<T>(
                     width: menuWidth,
                     itemHeight: itemHeight,
-                    overlap: overlap,
                     maxHeight: maxHeight,
                     padding: _padding(widget.size, theme.borderWidth),
                     items: widget.items,
                     colors: surfaceColors,
-                    textStyle:
-                        theme.typography.body.copyWith(color: surfaceColors.textPrimary),
+                    textStyle: theme.typography.body.copyWith(
+                      color: surfaceColors.textPrimary,
+                    ),
                     placement: placement,
-                    onSelected: (value) =>
-                        Navigator.of(context).pop(value),
+                    onSelected: (value) => Navigator.of(context).pop(value),
                   ),
                 ),
               ],
@@ -319,28 +318,12 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
     }
   }
 
-  double _menuHeight(int count, double itemHeight, double overlap) {
-    if (count <= 0) return 0;
-    return itemHeight * count - overlap * (count - 1);
-  }
+  double _menuHeight(int count, double itemHeight) => itemHeight * count;
 
   double _clampHorizontal(double left, double width, double maxWidth) {
     if (maxWidth <= 0) return 0;
     final maxLeft = (maxWidth - width).clamp(0.0, maxWidth);
     return left.clamp(0.0, maxLeft);
-  }
-
-  double _resolveVerticalPosition(
-    Rect buttonRect,
-    double menuHeight,
-    double maxHeight,
-    double overlap,
-  ) {
-    final below = buttonRect.bottom + menuHeight - overlap;
-    if (below <= maxHeight) return buttonRect.bottom - overlap;
-    final above = buttonRect.top - menuHeight + overlap;
-    if (above >= 0) return above;
-    return (maxHeight - menuHeight).clamp(0.0, maxHeight);
   }
 
   double _height(OreButtonSize size) {
@@ -354,22 +337,23 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
     }
   }
 
-  EdgeInsetsGeometry _padding(OreButtonSize size, double unit) {
+  EdgeInsets _padding(OreButtonSize size, double unit) {
+    // The bevel already occupies two units; keep it out of the content inset.
     switch (size) {
       case OreButtonSize.sm:
         return EdgeInsets.symmetric(
           horizontal: unit * OreTokens.buttonPadSmHUnits,
-          vertical: unit * OreTokens.buttonPadSmVUnits,
+          vertical: unit * (OreTokens.buttonPadSmVUnits - 2),
         );
       case OreButtonSize.md:
         return EdgeInsets.symmetric(
           horizontal: unit * OreTokens.buttonPadMdHUnits,
-          vertical: unit * OreTokens.buttonPadMdVUnits,
+          vertical: unit * (OreTokens.buttonPadMdVUnits - 2),
         );
       case OreButtonSize.lg:
         return EdgeInsets.symmetric(
           horizontal: unit * OreTokens.buttonPadLgHUnits,
-          vertical: unit * OreTokens.buttonPadLgVUnits,
+          vertical: unit * (OreTokens.buttonPadLgVUnits - 2),
         );
     }
   }
@@ -404,8 +388,13 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
     switch (widget.variant) {
       case OreButtonVariant.primary:
         return _DropdownColors(
-          background: _pick(colors.accent, colors.accentHover,
-              colors.accentPressed, hovered, pressed),
+          background: _pick(
+            colors.accent,
+            colors.accentHover,
+            colors.accentPressed,
+            hovered,
+            pressed,
+          ),
           borderColor: colors.border,
           shadowColor: colors.accentPressed,
           highlightColor: coloredHighlight,
@@ -413,8 +402,13 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
         );
       case OreButtonVariant.danger:
         return _DropdownColors(
-          background: _pick(colors.danger, colors.dangerHover,
-              colors.dangerPressed, hovered, pressed),
+          background: _pick(
+            colors.danger,
+            colors.dangerHover,
+            colors.dangerPressed,
+            hovered,
+            pressed,
+          ),
           borderColor: colors.border,
           shadowColor: colors.dangerPressed,
           highlightColor: coloredHighlight,
@@ -422,8 +416,13 @@ class _OreDropdownButtonState<T> extends State<OreDropdownButton<T>> {
         );
       case OreButtonVariant.secondary:
         return _DropdownColors(
-          background: _pick(colors.surface, colors.surfaceHover,
-              colors.surfacePressed, hovered, pressed),
+          background: _pick(
+            colors.surface,
+            colors.surfaceHover,
+            colors.surfacePressed,
+            hovered,
+            pressed,
+          ),
           borderColor: colors.border,
           shadowColor: colors.shadow,
           highlightColor: neutralHighlight,
@@ -483,7 +482,6 @@ class _DropdownMenuPanel<T> extends StatefulWidget {
   const _DropdownMenuPanel({
     required this.width,
     required this.itemHeight,
-    required this.overlap,
     required this.maxHeight,
     required this.padding,
     required this.items,
@@ -495,7 +493,6 @@ class _DropdownMenuPanel<T> extends StatefulWidget {
 
   final double width;
   final double itemHeight;
-  final double overlap;
   final double maxHeight;
   final EdgeInsetsGeometry padding;
   final List<OreDropdownItem<T>> items;
@@ -519,66 +516,56 @@ class _DropdownMenuPanelState<T> extends State<_DropdownMenuPanel<T>> {
 
   @override
   Widget build(BuildContext context) {
-    final totalHeight = widget.items.isEmpty
-        ? 0.0
-        : widget.itemHeight * widget.items.length -
-            widget.overlap * (widget.items.length - 1);
-    final viewportHeight =
-        totalHeight.clamp(0.0, widget.maxHeight);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final itemBackground = Color.lerp(
+    final itemBackground =
+        Color.lerp(
           widget.colors.background,
           isDark ? Colors.white : Colors.black,
           isDark ? 0.22 : 0.16,
         ) ??
         widget.colors.background;
     final borderWidth = OreTheme.of(context).borderWidth;
-    final content = SizedBox(
-      height: totalHeight,
-      child: Stack(
-        children: [
-          for (var i = 0; i < widget.items.length; i++)
-            Positioned(
-              left: 0,
-              right: 0,
-              top: i * (widget.itemHeight - widget.overlap),
-              height: widget.itemHeight,
-              child: _DropdownMenuItem<T>(
-                item: widget.items[i],
-                textStyle: widget.textStyle,
-                background: itemBackground,
-                borderColor: widget.colors.border,
-                borderWidth: borderWidth,
-                padding: widget.padding,
-                showBlackTop: widget.placement == _MenuPlacement.above
-                    ? i == 0
-                    : false,
-                showBlackBottom: widget.placement == _MenuPlacement.above
-                    ? false
-                    : i == widget.items.length - 1,
-                whiteInsetTop: widget.placement == _MenuPlacement.below &&
-                        i == 0
-                    ? _menuInnerBorderWidth
-                        : 0.0,
-                whiteInsetBottom: widget.placement == _MenuPlacement.above &&
-                        i == widget.items.length - 1
-                    ? _menuInnerBorderWidth
-                    : 0.0,
-                onSelected: widget.onSelected,
-              ),
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < widget.items.length; i++)
+          ConstrainedBox(
+            constraints: BoxConstraints(minHeight: widget.itemHeight),
+            child: _DropdownMenuItem<T>(
+              item: widget.items[i],
+              textStyle: widget.textStyle,
+              background: itemBackground,
+              borderColor: widget.colors.border,
+              borderWidth: borderWidth,
+              padding: widget.padding,
+              showBlackTop: widget.placement == _MenuPlacement.above
+                  ? i == 0
+                  : false,
+              showBlackBottom: widget.placement == _MenuPlacement.above
+                  ? false
+                  : i == widget.items.length - 1,
+              whiteInsetTop: widget.placement == _MenuPlacement.below && i == 0
+                  ? _menuInnerBorderWidth
+                  : 0.0,
+              whiteInsetBottom:
+                  widget.placement == _MenuPlacement.above &&
+                      i == widget.items.length - 1
+                  ? _menuInnerBorderWidth
+                  : 0.0,
+              onSelected: widget.onSelected,
             ),
-        ],
-      ),
+          ),
+      ],
     );
 
-    return SizedBox(
-      width: widget.width,
-      height: viewportHeight,
-      child: OreScrollbar(
-        controller: _controller,
-        child: SingleChildScrollView(
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: widget.maxHeight),
+      child: SizedBox(
+        width: widget.width,
+        child: OreScrollbar(
           controller: _controller,
-          child: content,
+          child: SingleChildScrollView(controller: _controller, child: content),
         ),
       ),
     );
@@ -669,8 +656,7 @@ class _MenuSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final resolvedPadding =
-        padding.resolve(Directionality.of(context));
+    final resolvedPadding = padding.resolve(Directionality.of(context));
     final innerWidth = _menuInnerBorderWidth;
     final leftInset = borderWidth;
     final rightInset = borderWidth;
@@ -744,10 +730,7 @@ class _MenuSurface extends StatelessWidget {
             height: innerWidth,
             child: Container(color: innerBorderColor),
           ),
-          Padding(
-            padding: resolvedPadding,
-            child: child,
-          ),
+          Padding(padding: resolvedPadding, child: child),
         ],
       ),
     );

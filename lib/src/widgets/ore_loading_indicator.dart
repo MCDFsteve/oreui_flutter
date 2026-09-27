@@ -28,7 +28,7 @@ class OreLoadingIndicator extends StatelessWidget {
         : 'assets/loading/Loading.gif';
 
     return Semantics(
-      label: semanticLabel,
+      label: semanticLabel ?? '加载中',
       image: true,
       child: SizedBox(
         width: size,

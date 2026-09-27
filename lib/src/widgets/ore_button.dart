@@ -5,6 +5,7 @@ import '../theme/ore_highlight.dart';
 import '../theme/ore_theme.dart';
 import '../theme/ore_tokens.dart';
 import 'ore_pixel_icon.dart';
+import 'ore_loading_indicator.dart';
 import 'ore_shadow.dart';
 import 'ore_surface.dart';
 
@@ -31,6 +32,7 @@ class OreButton extends StatefulWidget {
     this.forcePressedKeepsColor = false,
     this.pressedAxis = Axis.vertical,
     this.shadowSide,
+    this.contentPadding,
   });
 
   final Widget child;
@@ -49,6 +51,7 @@ class OreButton extends StatefulWidget {
   final bool forcePressedKeepsColor;
   final Axis pressedAxis;
   final OreShadowSide? shadowSide;
+  final EdgeInsets? contentPadding;
 
   @override
   State<OreButton> createState() => _OreButtonState();
@@ -66,28 +69,31 @@ class _OreButtonState extends State<OreButton> {
     final colors = resolveControlColors(context, theme.colors);
     final isPressed = (_pressed && _enabled) || widget.forcePressed;
     final colorPressed =
-        (_pressed && _enabled && !(widget.forcePressed && widget.forcePressedKeepsColor)) ||
+        (_pressed &&
+            _enabled &&
+            !(widget.forcePressed && widget.forcePressedKeepsColor)) ||
         (widget.forcePressed && !widget.forcePressedKeepsColor);
-    final isHovered = _hovered &&
+    final isHovered =
+        _hovered &&
         _enabled &&
         !(widget.forcePressed && widget.forcePressedKeepsColor);
     final styleEnabled = _enabled || widget.forcePressed;
 
-    final config =
-        _resolveColors(colors, isHovered, colorPressed, styleEnabled);
+    final config = _resolveColors(
+      colors,
+      isHovered,
+      colorPressed,
+      styleEnabled,
+    );
     final height = _height(widget.size);
-    final basePadding = _padding(widget.size, theme.borderWidth);
+    final basePadding =
+        widget.contentPadding ?? _padding(widget.size, theme.borderWidth);
 
     final depthUnit = theme.borderWidth;
     final visualDepth = depthUnit * 2;
     final shadowDepth = isPressed ? 0.0 : visualDepth;
     final highlightDepth = depthUnit;
-    final resolvedShadowSide =
-        widget.shadowSide ?? OreShadowSide.bottom;
-    final pressedAlignment = _resolvePressedAlignment(
-      widget.pressedAxis,
-      resolvedShadowSide,
-    );
+    final resolvedShadowSide = widget.shadowSide ?? OreShadowSide.bottom;
     final contentOffset = isPressed
         ? 0.0
         : _resolveRaisedOffset(
@@ -98,16 +104,17 @@ class _OreButtonState extends State<OreButton> {
     final pressedPadding = widget.pressedAxis == Axis.vertical
         ? EdgeInsets.fromLTRB(
             basePadding.left,
-            (basePadding.top - visualDepth).clamp(0.0, basePadding.top),
+            (basePadding.top - visualDepth / 2).clamp(0.0, basePadding.top),
             basePadding.right,
-            (basePadding.bottom - visualDepth)
-                .clamp(0.0, basePadding.bottom),
+            (basePadding.bottom - visualDepth / 2).clamp(
+              0.0,
+              basePadding.bottom,
+            ),
           )
         : EdgeInsets.fromLTRB(
-            (basePadding.left - visualDepth).clamp(0.0, basePadding.left),
+            (basePadding.left - visualDepth / 2).clamp(0.0, basePadding.left),
             basePadding.top,
-            (basePadding.right - visualDepth)
-                .clamp(0.0, basePadding.right),
+            (basePadding.right - visualDepth / 2).clamp(0.0, basePadding.right),
             basePadding.bottom,
           );
     final padding = isPressed ? pressedPadding : basePadding;
@@ -125,15 +132,11 @@ class _OreButtonState extends State<OreButton> {
       duration: OreTokens.fast,
       builder: (context, value, child) {
         final dpr = MediaQuery.of(context).devicePixelRatio;
-        final snapped =
-            (value * dpr).roundToDouble() / dpr;
+        final snapped = (value * dpr).roundToDouble() / dpr;
         final offset = widget.pressedAxis == Axis.horizontal
             ? Offset(snapped, 0)
             : Offset(0, snapped);
-        return Transform.translate(
-          offset: offset,
-          child: child,
-        );
+        return Transform.translate(offset: offset, child: child);
       },
       child: content,
     );
@@ -156,101 +159,22 @@ class _OreButtonState extends State<OreButton> {
     );
 
     final pressedCut = isPressed ? visualDepth : 0.0;
-    final widthFactor =
-        (widget.width == null && !widget.fullWidth) ? 1.0 : null;
-    final innerWidth =
-        (widget.width != null || widget.fullWidth) ? double.infinity : null;
-
-    Widget buttonBody;
-    if (widget.pressedAxis == Axis.vertical) {
-      final pressedHeight =
-          (height - pressedCut).clamp(0.0, height);
-      buttonBody = SizedBox(
-        height: height,
-        child: Align(
-          alignment: pressedAlignment,
-          widthFactor: widthFactor,
-          child: SizedBox(
-            width: innerWidth,
-            height: pressedHeight,
-            child: surface,
-          ),
-        ),
-      );
-    } else {
-      final pressedInset = isPressed ? pressedCut : 0.0;
-      final pressedInsets = _resolvePressedInsets(
+    // Insets move the face without changing the content's natural size. A
+    // minimum height lets CJK text, descenders and enlarged labels fit fully.
+    Widget buttonBody = Padding(
+      padding: _resolvePressedInsets(
         widget.pressedAxis,
         resolvedShadowSide,
-        pressedInset,
-      );
-      final pressedSurface = Padding(
-        padding: pressedInsets,
-        child: surface,
-      );
-      Widget contentBody = SizedBox(
-        height: height,
-        child: Align(
-          alignment: pressedAlignment,
-          widthFactor: widthFactor,
-          child: SizedBox(
-            width: innerWidth,
-            height: height,
-            child: pressedSurface,
-          ),
+        pressedCut,
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight:
+              height - (widget.pressedAxis == Axis.vertical ? pressedCut : 0),
         ),
-      );
-
-      if (isPressed && pressedInset > 0) {
-        final sizerSurface = OreSurface(
-          color: config.background,
-          borderColor: config.borderColor,
-          highlightColor: config.highlightColor,
-          shadowColor: config.shadowColor,
-          borderWidth: theme.borderWidth,
-          depth: visualDepth,
-          highlightDepth: highlightDepth,
-          shadowDepth: shadowDepth,
-          shadowSide: widget.shadowSide,
-          swapHighlightOnPressed: false,
-          alignment: Alignment.center,
-          padding: basePadding,
-          pressed: false,
-          child: content,
-        );
-        final sizer = IgnorePointer(
-          child: ExcludeSemantics(
-            child: Opacity(
-              opacity: 0,
-              child: SizedBox(
-                height: height,
-                child: Align(
-                  alignment: Alignment.center,
-                  widthFactor: widthFactor,
-                  child: SizedBox(
-                    width: innerWidth,
-                    height: height,
-                    child: sizerSurface,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-        contentBody = SizedBox(
-          height: height,
-          child: Stack(
-            alignment: pressedAlignment,
-            children: [
-              sizer,
-              contentBody,
-            ],
-          ),
-        );
-      }
-
-      buttonBody = contentBody;
-    }
+        child: surface,
+      ),
+    );
 
     if (widget.width != null) {
       buttonBody = SizedBox(width: widget.width, child: buttonBody);
@@ -258,21 +182,37 @@ class _OreButtonState extends State<OreButton> {
       buttonBody = SizedBox(width: double.infinity, child: buttonBody);
     }
 
-    return Focus(
-      autofocus: widget.autofocus,
-      focusNode: widget.focusNode,
-      child: MouseRegion(
-        onEnter: (_) => _setHovered(true),
-        onExit: (_) => _setHovered(false),
-        cursor: _enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
-        child: GestureDetector(
-          onTap: _enabled ? widget.onPressed : null,
-          onLongPress: _enabled ? widget.onLongPress : null,
-          onTapDown: _enabled ? (_) => _setPressed(true) : null,
-          onTapUp: _enabled ? (_) => _setPressed(false) : null,
-          onTapCancel: _enabled ? () => _setPressed(false) : null,
-          behavior: HitTestBehavior.opaque,
-          child: buttonBody,
+    return Semantics(
+      button: true,
+      enabled: _enabled,
+      child: FocusableActionDetector(
+        enabled: _enabled,
+        onShowFocusHighlight: _setHovered,
+        actions: {
+          ActivateIntent: CallbackAction<ActivateIntent>(
+            onInvoke: (_) {
+              if (_enabled) widget.onPressed?.call();
+              return null;
+            },
+          ),
+        },
+        autofocus: widget.autofocus,
+        focusNode: widget.focusNode,
+        child: MouseRegion(
+          onEnter: (_) => _setHovered(true),
+          onExit: (_) => _setHovered(false),
+          cursor: _enabled
+              ? SystemMouseCursors.click
+              : SystemMouseCursors.basic,
+          child: GestureDetector(
+            onTap: _enabled ? widget.onPressed : null,
+            onLongPress: _enabled ? widget.onLongPress : null,
+            onTapDown: _enabled ? (_) => _setPressed(true) : null,
+            onTapUp: _enabled ? (_) => _setPressed(false) : null,
+            onTapCancel: _enabled ? () => _setPressed(false) : null,
+            behavior: HitTestBehavior.opaque,
+            child: buttonBody,
+          ),
         ),
       ),
     );
@@ -289,13 +229,11 @@ class _OreButtonState extends State<OreButton> {
 
     if (widget.isLoading) {
       parts.add(
-        SizedBox(
-          width: 16,
-          height: 16,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(textColor),
-          ),
+        OreLoadingIndicator(
+          size: 16,
+          tone: textColor.computeLuminance() > .5
+              ? OreLoadingTone.light
+              : OreLoadingTone.dark,
         ),
       );
     }
@@ -315,6 +253,7 @@ class _OreButtonState extends State<OreButton> {
       if (!expandContent) return parts.first;
       return Align(
         alignment: Alignment.center,
+        heightFactor: 1,
         child: parts.first,
       );
     }
@@ -339,11 +278,7 @@ class _OreButtonState extends State<OreButton> {
     return spaced;
   }
 
-  Widget _normalizeIcon(
-    BuildContext context,
-    Widget widget,
-    Color textColor,
-  ) {
+  Widget _normalizeIcon(BuildContext context, Widget widget, Color textColor) {
     if (widget is OrePixelIcon) {
       return UnconstrainedBox(
         alignment: Alignment.center,
@@ -382,21 +317,22 @@ class _OreButtonState extends State<OreButton> {
   }
 
   EdgeInsets _padding(OreButtonSize size, double unit) {
+    // The bevel already occupies two units; keep it out of the content inset.
     switch (size) {
       case OreButtonSize.sm:
         return EdgeInsets.symmetric(
           horizontal: unit * OreTokens.buttonPadSmHUnits,
-          vertical: unit * OreTokens.buttonPadSmVUnits,
+          vertical: unit * (OreTokens.buttonPadSmVUnits - 2),
         );
       case OreButtonSize.md:
         return EdgeInsets.symmetric(
           horizontal: unit * OreTokens.buttonPadMdHUnits,
-          vertical: unit * OreTokens.buttonPadMdVUnits,
+          vertical: unit * (OreTokens.buttonPadMdVUnits - 2),
         );
       case OreButtonSize.lg:
         return EdgeInsets.symmetric(
           horizontal: unit * OreTokens.buttonPadLgHUnits,
-          vertical: unit * OreTokens.buttonPadLgVUnits,
+          vertical: unit * (OreTokens.buttonPadLgVUnits - 2),
         );
     }
   }
@@ -431,8 +367,13 @@ class _OreButtonState extends State<OreButton> {
     switch (widget.variant) {
       case OreButtonVariant.primary:
         return _ButtonColors(
-          background: _pick(colors.accent, colors.accentHover,
-              colors.accentPressed, hovered, pressed),
+          background: _pick(
+            colors.accent,
+            colors.accentHover,
+            colors.accentPressed,
+            hovered,
+            pressed,
+          ),
           borderColor: colors.border,
           shadowColor: colors.accentPressed,
           highlightColor: coloredHighlight,
@@ -440,8 +381,13 @@ class _OreButtonState extends State<OreButton> {
         );
       case OreButtonVariant.danger:
         return _ButtonColors(
-          background: _pick(colors.danger, colors.dangerHover,
-              colors.dangerPressed, hovered, pressed),
+          background: _pick(
+            colors.danger,
+            colors.dangerHover,
+            colors.dangerPressed,
+            hovered,
+            pressed,
+          ),
           borderColor: colors.border,
           shadowColor: colors.dangerPressed,
           highlightColor: coloredHighlight,
@@ -449,8 +395,13 @@ class _OreButtonState extends State<OreButton> {
         );
       case OreButtonVariant.secondary:
         return _ButtonColors(
-          background: _pick(colors.surface, colors.surfaceHover,
-              colors.surfacePressed, hovered, pressed),
+          background: _pick(
+            colors.surface,
+            colors.surfaceHover,
+            colors.surfacePressed,
+            hovered,
+            pressed,
+          ),
           borderColor: colors.border,
           shadowColor: colors.shadow,
           highlightColor: neutralHighlight,
@@ -489,11 +440,7 @@ class _OreButtonState extends State<OreButton> {
     setState(() => _pressed = value);
   }
 
-  double _resolveRaisedOffset(
-    double depth,
-    Axis axis,
-    OreShadowSide side,
-  ) {
+  double _resolveRaisedOffset(double depth, Axis axis, OreShadowSide side) {
     if (axis == Axis.horizontal) {
       switch (side) {
         case OreShadowSide.left:
@@ -517,33 +464,6 @@ class _OreButtonState extends State<OreButton> {
     }
   }
 
-  Alignment _resolvePressedAlignment(
-    Axis axis,
-    OreShadowSide side,
-  ) {
-    if (axis == Axis.horizontal) {
-      switch (side) {
-        case OreShadowSide.left:
-          return Alignment.centerLeft;
-        case OreShadowSide.right:
-          return Alignment.centerRight;
-        case OreShadowSide.top:
-        case OreShadowSide.bottom:
-          return Alignment.center;
-      }
-    }
-
-    switch (side) {
-      case OreShadowSide.top:
-        return Alignment.topCenter;
-      case OreShadowSide.bottom:
-        return Alignment.bottomCenter;
-      case OreShadowSide.left:
-      case OreShadowSide.right:
-        return Alignment.center;
-    }
-  }
-
   EdgeInsets _resolvePressedInsets(
     Axis axis,
     OreShadowSide side,
@@ -561,7 +481,15 @@ class _OreButtonState extends State<OreButton> {
           return EdgeInsets.symmetric(horizontal: inset / 2);
       }
     }
-    return EdgeInsets.zero;
+    switch (side) {
+      case OreShadowSide.top:
+        return EdgeInsets.only(bottom: inset);
+      case OreShadowSide.bottom:
+        return EdgeInsets.only(top: inset);
+      case OreShadowSide.left:
+      case OreShadowSide.right:
+        return EdgeInsets.symmetric(vertical: inset / 2);
+    }
   }
 }
 

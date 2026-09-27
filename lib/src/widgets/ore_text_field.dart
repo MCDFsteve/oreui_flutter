@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../theme/ore_theme.dart';
 import '../theme/ore_tokens.dart';
 import 'ore_surface.dart';
+import 'ore_text_selection.dart';
 
 class OreTextField extends StatelessWidget {
   const OreTextField({
@@ -56,11 +57,12 @@ class OreTextField extends StatelessWidget {
     final borderColor = enabled ? colors.border : colors.borderLight;
     final textColor = enabled ? colors.textPrimary : colors.textDisabled;
 
-    final isSingleLine =
-        (maxLines ?? 1) == 1 && (minLines ?? 1) == 1;
-    final textAlignVertical =
-        isSingleLine ? TextAlignVertical.center : TextAlignVertical.top;
-    final resolvedPadding = contentPadding ??
+    final isSingleLine = (maxLines ?? 1) == 1 && (minLines ?? 1) == 1;
+    final textAlignVertical = isSingleLine
+        ? TextAlignVertical.center
+        : TextAlignVertical.top;
+    final resolvedPadding =
+        contentPadding ??
         (isSingleLine
             ? EdgeInsets.symmetric(
                 horizontal: OreTokens.gapMd,
@@ -76,8 +78,7 @@ class OreTextField extends StatelessWidget {
                 horizontal: OreTokens.gapMd,
                 vertical: OreTokens.gapSm,
               ));
-    final hintStyle =
-        theme.typography.body.copyWith(color: colors.textMuted);
+    final hintStyle = theme.typography.body.copyWith(color: colors.textMuted);
     final hintOffset = depthUnit * OreTokens.inputHintOffsetUnits;
     final hintWidget = isSingleLine && hintText != null
         ? Transform.translate(
@@ -109,6 +110,8 @@ class OreTextField extends StatelessWidget {
       cursorColor: colors.success,
       cursorWidth: depthUnit * 0.5,
       cursorRadius: Radius.zero,
+      selectionControls: OreTextSelectionControls(),
+      contextMenuBuilder: OreTextSelectionToolbar.editable,
       decoration: InputDecoration(
         border: InputBorder.none,
         isDense: true,
@@ -133,10 +136,7 @@ class OreTextField extends StatelessWidget {
       shadowOnTop: true,
       padding: EdgeInsets.zero,
       child: isSingleLine
-          ? Align(
-              alignment: Alignment.centerLeft,
-              child: textField,
-            )
+          ? Align(alignment: Alignment.centerLeft, child: textField)
           : textField,
     );
 

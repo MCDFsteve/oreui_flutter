@@ -15,52 +15,48 @@ class _ThemeToggleHarness extends StatelessWidget {
       builder: (context, data, brightness) {
         return MaterialApp(
           theme: ThemeData(brightness: brightness, extensions: [data]),
-          home: Column(
-            children: [
-              const OreThemeModeSwitch(key: Key('theme-switch')),
-              OreStrip(
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      OreButton(
-                        onPressed: () {},
-                        child: const Text('Button'),
-                      ),
-                      const SizedBox(height: 8),
-                      OreChoiceButtons(
-                        items: const [
-                          Text('A'),
-                          Text('B'),
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const OreThemeModeSwitch(key: Key('theme-switch')),
+                  OreStrip(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          OreButton(
+                            key: const Key('theme-probe'),
+                            onPressed: () {},
+                            child: const Text('Button'),
+                          ),
+                          const SizedBox(height: 8),
+                          OreChoiceButtons(
+                            items: const [Text('A'), Text('B')],
+                            selectedIndex: 0,
+                            onChanged: (_) {},
+                          ),
+                          const SizedBox(height: 8),
+                          OreSlider(value: 0.5, onChanged: (_) {}),
+                          const SizedBox(height: 8),
+                          OreSwitch(value: true, onChanged: (_) {}),
+                          const SizedBox(height: 8),
+                          OreDropdownButton<String>(
+                            items: const [
+                              OreDropdownItem(value: 'A', child: Text('A')),
+                              OreDropdownItem(value: 'B', child: Text('B')),
+                            ],
+                            value: 'A',
+                            onChanged: (_) {},
+                          ),
                         ],
-                        selectedIndex: 0,
-                        onChanged: (_) {},
                       ),
-                      const SizedBox(height: 8),
-                      OreSlider(
-                        value: 0.5,
-                        onChanged: (_) {},
-                      ),
-                      const SizedBox(height: 8),
-                      OreSwitch(
-                        value: true,
-                        onChanged: (_) {},
-                      ),
-                      const SizedBox(height: 8),
-                      OreDropdownButton<String>(
-                        items: const [
-                          OreDropdownItem(value: 'A', child: Text('A')),
-                          OreDropdownItem(value: 'B', child: Text('B')),
-                        ],
-                        value: 'A',
-                        onChanged: (_) {},
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         );
       },
@@ -69,20 +65,21 @@ class _ThemeToggleHarness extends StatelessWidget {
 }
 
 void main() {
-  testWidgets('OreThemeModeSwitch toggles light/dark theme',
-      (WidgetTester tester) async {
+  testWidgets('OreThemeModeSwitch toggles light/dark theme', (
+    WidgetTester tester,
+  ) async {
     final controller = OreThemeController(brightness: Brightness.dark);
     await tester.pumpWidget(_ThemeToggleHarness(controller: controller));
 
-    final beforeContext = tester.element(find.byType(OreButton));
+    final beforeContext = tester.element(find.byKey(const Key('theme-probe')));
     final colorsBefore = OreTheme.of(beforeContext).colors;
     expect(colorsBefore.background, const Color(0xFF48494A));
 
     await tester.tap(find.byKey(const Key('theme-switch')));
     await tester.pumpAndSettle();
 
-    final afterContext = tester.element(find.byType(OreButton));
+    final afterContext = tester.element(find.byKey(const Key('theme-probe')));
     final colorsAfter = OreTheme.of(afterContext).colors;
-    expect(colorsAfter.background, const Color(0xFFE7E8EA));
+    expect(colorsAfter.background, OreColors.light().background);
   });
 }

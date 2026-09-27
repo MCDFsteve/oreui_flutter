@@ -93,7 +93,14 @@ final data = base.copyWith(
 - `OreChoiceTitle`
 - `OreDivider`
 - `OreDropdownButton`
-- `OreLoadingIndicator`
+- `OreLoadingIndicator` / `OreProgressBar`
+- `OreIconButton` / `OreTooltip`
+- `OreListTile` / `OreCheckboxListTile` / `OreRadioListTile`
+- `OreCalendarDatePicker`
+- `OreDialog` / `OreAlertDialog` / `showOreDialog` / `showOreModalBottomSheet`
+- `showOreToast`
+- `OreSelectionArea` / `OreSelectableText` / `OreTextSelectionToolbar`
+- `oreAppTheme` / `OreScrollBehavior`
 - `OrePixelIcon`
 - `OreScrollbar`
 - `OreSlider`
